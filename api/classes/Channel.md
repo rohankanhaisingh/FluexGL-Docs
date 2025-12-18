@@ -1,180 +1,248 @@
 # Class ``Channel``
 
-A virtual channel.
+An audio routing unit that can host an effect chain, attach audio clips via an internal [``AudioClipPlayer``](./AudioClipPlayer.md), and send its output to another [``Channel``](./Channel.md) or the [``Master``](./Master.md).
 
 ## Example
+
 ```ts
-import { Channel } from "@fluexgl/dsp";
+import { Channel } from "@fluex/fluexgl-dsp";
 
-...
-
-const channel = new Channel();
-channel.SetLabel("Background Music");
-
-master.AddChannel(channel);
+const channel = new Channel(context);
+channel.Send(master);
 ```
 
 - - -
 
 ## Constructor
+Constructs a new Channel and initializes its internal audio nodes (input → effects → panner → analyser → gain → output) and its [``AudioClipPlayer``](./AudioClipPlayer.md).
 
-Constructs a new channel.
 ```ts
-new Channel(options?: ChannelOptions): Channel;
+new Channel(context: AudioContext): Channel;
 ```
+
 ### Arguments
-- ``options``: [``ChannelOptions``](../interfaces/ChannelOptions)  - A constructed [``ChannelOptions``](../interfaces/ChannelOptions) typed object.
+- ``context``: ``AudioContext`` - The AudioContext used to create this channel's internal audio nodes.
+
+- - -
 
 ## Properties
 
 ### ``id: string``
-An unique id, automatically generated when constructing a new channel. Should NOT be changed.
-```ts
-class Channel {
-    public id: string;
-}
-```
-
-### ``effects: Effector[]``
-An array with applied effects. See [``Effector``](./Effector.md) for more details.
-```ts
-class Channel {
-    public effects: Effector[];
-}
-```
+A unique id, automatically generated when constructing a new channel. Should NOT be changed.
 
 ### ``label: string``
-Custom channel label. Useful for debugging.
-```ts
-class Channel {
-    public label: string;
-}
-```
+A custom label for this channel. Can be changed.
 
-### ``parentialContext: AudioContext | null``
-The parential context, usually inherited from the master channel.
-```ts
-class Channel {
-    public parentialContext: AudioContext | null;
-}
-```
-
-### ``parentialMasterChannel: Master | null``
-The parential channel, usually a master channel. See [``Master``](./Master.md) for more details.
-```ts
-class Channel {
-    public parentialMasterChannel: Master | null;
-}
-```
-
-### ``audioClips: AudioClip[]``
-An array with audio clips. See [``AudioClip``](./AudioClip.md) for more details.
-```ts
-class Channel {
-    public audioClips: AudioClip[];
-}
-```
-
-### ``gainNode: GainNode | null``
-Main channel gain node. Can be tweaked.
-```ts
-class Channel {
-    public gainNode: GainNode | null;
-}
-```
+### ``input: AudioNode | null``
+Input node for this channel. Internally created as a GainNode and used as the start of the routing chain.
 
 ### ``stereoPannerNode: StereoPannerNode | null``
-Main stereo panner node. Can be tweaked.
-```ts
-class Channel {
-    public stereoPannerNode: StereoPannerNode | null;
-}
-```
+Stereo panner node for left/right balance control inside this channel.
 
 ### ``analyserNode: AnalyserNode | null``
-Analyser node, cannot be tweaked.
+Analyser node used for visualization / analysis of this channel's signal.
 
-```ts
-class Channel {
-    public analyserNode: AnalyserNode | null;
-}
-```
+### ``gainNode: GainNode | null``
+Gain node used to control the channel's volume after analysis.
 
-### ``audioClipsInputGainNode: GainNode | null``
-Gain node specifically made as output gain node for audio clips. Should left behind and not be interacted with.
-```ts
-class Channel {
-    audioClipsInputGainNode: GainNode | null;
-}
-```
+### ``output: AudioNode | null``
+Output node of this channel. This node is connected to other channels when calling ``Send()``.
 
-### ``volume: number | null``
-Volume of the channel, gets the value from the gain node. Will return ``null`` if the gain node is undefined.
-```ts
-class Channel {
-    public get volume(): number | null;
-}
-```
+### ``effects: Effector[]``
+List of attached [``Effector``](./Effector.md) instances. These are wired between ``input`` and ``stereoPannerNode``.
 
-### ``panLevel: number | null``
-Pan level of the channel, gets the value from the stereo panner node. Will return ``null`` if the stereo panner node is undefined.
-```ts
-class Chanel {
-    public get panLevel(): number | null;
-}
-```
+### ``context: AudioContext | null``
+The AudioContext this channel was constructed with.
+
+### ``sends: Channel[]``
+Channels this channel is currently connected to via ``Send()``.
+
+### ``audioClipPlayer: AudioClipPlayer | null``
+[``AudioClipPlayer``](./AudioClipPlayer.md) owned by this channel. Used to attach and play [``AudioClip``](./AudioClip.md) instances into this channel.
+
+- - -
 
 ## Methods
 
-### ``SetLabel(label: string): void``
-Sets the name of the channel, as suggested from the name of this method.
-
-- ``label: string``: The new channel label
-
-### ``ClearLabel(): void``
-Clears the label, as suggested from the name of this method.
-
-### ``AttachAudioClip(clip: AudioClip): void``
-Attaches a new audio clip to this channel. Cannot be attached twice, should be deattached in order to attach again.
-
-- ``clip: AudioClip``: An [``AudioClip``](./AudioClip.md) class instance.
-
-### ``DetachAudioClip(clip: AudioClip): void``
-Detaches the provided audio clip using it's id. Cannot be deattached if the clip has not been attached to this channel.
-
-- ``clip: AudioClip``: An [``AudioClip``](./AudioClip.md) class instance.
-
-### ``SetVolume(volume: number): void``
-Sets the volume of this channel, using it's GainNode.
-
-- ``volume: number``: The volume in either integers or floating numbers.
-
-### ``SetPanLevel(pan: number): void``
-Sets the pan level of this channel, using it's StereoPannerNode
-
-- ``pan: number``: The pan level in either integers or floating numbers. **Note: the value has to be between -1 and 1. With -1 representing very left, and 1 very right.**
-
 ### ``AddEffect(effect: Effector): void``
-Adds an effect to this channel. Cannot add the same effect on this channel. Should be removed before adding again.
+Adds an [``Effector``](./Effector.md) to this channel, initializes it using this channel's ``AudioContext``, and rebuilds the internal effect chain routing.
 
-- ``effect: Effector``: An [``Effector``](./Effector.md) extended class instance.
+#### Arguments
+- ``effect``: [``Effector``](./Effector.md) - The effect instance to add.
+
+#### Returns
+- ``void``
+
+### ``AttachEffect(effect: Effector): void``
+Alias for ``AddEffect(effect)``.
+
+#### Arguments
+- ``effect``: [``Effector``](./Effector.md) - The effect instance to attach.
+
+#### Returns
+- ``void``
 
 ### ``RemoveEffect(effect: Effector): void``
-Removes an effect from this channel. Cannot remove if the effect does not exist on this channel.
+Removes an attached [``Effector``](./Effector.md) from this channel, disconnects its audio node, and rebuilds the internal effect chain routing.
 
-- ``effect: Effector``: An [``Effector``](./Effector.md) extended class instance.
+#### Arguments
+- ``effect``: [``Effector``](./Effector.md) - The effect instance to remove.
 
-### ``SetAnalyserFftSize(value: number): number | null``
-Sets the FFT size on the analyser. De default value is 32 to improve performance. Be aware that the higher the value, the more processing power it costs the analyse the frequencies.
+#### Returns
+- ``void``
 
-- ``value: number``: Unsigned long representing the window size in samples. See [https://developer.mozilla.org/en-US/docs/Web/API/AnalyserNode/fftSize](https://developer.mozilla.org/en-US/docs/Web/API/AnalyserNode/fftSize) for more details.
+### ``DetachEffect(effect: Effector): void``
+Alias for ``RemoveEffect(effect)``.
 
-### ``GetWaveformFloatData(): Float32Array | null``
-Uses the analyser to analyse the frequencies and put it into the channel's Float32Array. Will return ``null`` if the analyser is undefined.
+#### Arguments
+- ``effect``: [``Effector``](./Effector.md) - The effect instance to detach.
 
-Useful for monitoring the output of the channel, with the audio clips and effects merged.
+#### Returns
+- ``void``
 
-### ``GetWaveformByteData(): Uint8Array | null``
-Uses the analyser to analyse the frequencies and put it into the channel's Uint8Array. Will return ``null`` if the analyser is undefined.
+### ``Send(channel: Channel | Master): void``
+Connects this channel's ``output`` to another [``Channel``](./Channel.md) (to its ``input``) or to the [``Master``](./Master.md). Prevents self-links, mismatched AudioContexts, duplicate links, and feedback loops.
 
-Useful for monitoring the output of the channel, with the audio clips and effects merged.
+#### Arguments
+- ``channel``: [``Channel``](./Channel.md) | [``Master``](./Master.md) - The target that should receive this channel's signal.
+
+#### Returns
+- ``void``
+
+### ``Unsend(channel: Channel | Master): void``
+Disconnects this channel from a previously linked [``Channel``](./Channel.md) or [``Master``](./Master.md) and removes it from ``sends``.
+
+#### Arguments
+- ``channel``: [``Channel``](./Channel.md) | [``Master``](./Master.md) - The target that should stop receiving this channel's signal.
+
+#### Returns
+- ``void``
+
+### ``HasAudioClipPlayer(): boolean``
+Returns whether this channel has a constructed [``AudioClipPlayer``](./AudioClipPlayer.md).
+
+#### Arguments
+No arguments
+
+#### Returns
+- ``boolean`` - ``true`` if ``audioClipPlayer`` is defined, otherwise ``false``.
+
+### ``UnsendToAllChannels(): void``
+Disconnects this channel from all channels currently stored in ``sends``.
+
+#### Arguments
+No arguments
+
+#### Returns
+- ``void``
+
+### ``AttachAudioClip(audioClip: AudioClip): void``
+Attaches an [``AudioClip``](./AudioClip.md) to this channel via its internal [``AudioClipPlayer``](./AudioClipPlayer.md).
+
+#### Arguments
+- ``audioClip``: [``AudioClip``](./AudioClip.md) - The audio clip to attach.
+
+#### Returns
+- ``void``
+
+## Events
+
+This class does not emit custom events.
+
+- - -
+
+## Getters and setters
+
+This class does not define public getters or setters.
+
+- - -
+
+## Examples
+
+### Example 1: creating a channel using the Channel class.
+```ts
+import { DspPipeline, Channel } from "@fluex/fluexgl-dsp";
+
+(async function () {
+
+    const pipeline = new DspPipeline({
+        pathToWasm: "/FluexGL-DSP-WASM/fluexgl-dsp-wasm_bg.wasm",
+        pathToWorklet: "/FluexGL-DSP-WASM/fluexgl-dsp-processor.worklet",
+        options: {
+            overrideMaxAudioBufferNodes: true
+        }
+    });
+
+    await pipeline.InitializeDpsPipeline();
+
+    const audioDevice = await pipeline.ResolveDefaultAudioOutputDevice();
+
+    if (!audioDevice) return;
+
+    const context = audioDevice.GetContext();
+    const master = audioDevice.GetMasterChannel();
+
+    const channel = new Channel(context);
+    channel.Send(master);
+})()
+```
+
+### Example 2: creating channel without using the Channel class.
+```ts
+import { DspPipeline } from "@fluex/fluexgl-dsp";
+
+(async function () {
+
+    const pipeline = new DspPipeline({
+        pathToWasm: "/FluexGL-DSP-WASM/fluexgl-dsp-wasm_bg.wasm",
+        pathToWorklet: "/FluexGL-DSP-WASM/fluexgl-dsp-processor.worklet",
+        options: {
+            overrideMaxAudioBufferNodes: true
+        }
+    });
+
+    await pipeline.InitializeDpsPipeline();
+
+    const audioDevice = await pipeline.ResolveDefaultAudioOutputDevice();
+
+    if (!audioDevice) return;
+
+    const context = audioDevice.GetContext();
+    const master = audioDevice.GetMasterChannel();
+
+    const channel = audioDevice.CreateChannel();
+    channel.Send(master);
+})()
+```
+
+### Example 3: routing channels together
+```ts
+import { DspPipeline } from "@fluex/fluexgl-dsp";
+
+(async function () {
+
+    const pipeline = new DspPipeline({
+        pathToWasm: "/FluexGL-DSP-WASM/fluexgl-dsp-wasm_bg.wasm",
+        pathToWorklet: "/FluexGL-DSP-WASM/fluexgl-dsp-processor.worklet",
+        options: {
+            overrideMaxAudioBufferNodes: true
+        }
+    });
+
+    await pipeline.InitializeDpsPipeline();
+
+    const audioDevice = await pipeline.ResolveDefaultAudioOutputDevice();
+
+    if (!audioDevice) return;
+
+    const master = audioDevice.GetMasterChannel();
+
+    const channel1 = audioDevice.CreateChannel();
+    const channel2 = audioDevice.CreateChannel();
+    const channel3 = audioDevice.CreateChannel();
+
+    channel1.Send(channel2);
+    channel2.Send(channel3);
+    channel3.Send(master);
+})()
+```
