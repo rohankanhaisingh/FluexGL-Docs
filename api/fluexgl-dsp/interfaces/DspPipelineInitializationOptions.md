@@ -1,32 +1,20 @@
 # DspPipelineInitializationOptions
 
-An interface defining configuration options for initializing the DSP pipeline in **FluexGL DSP**.
+Configuration options for initializing the DSP pipeline in FluexGL DSP.
 
 ```ts
-export interface DspPipelineInitializationOptions {
+interface DspPipelineInitializationOptions {
     pathToWasm: string;
+    pathToWorklet: string;
+    options?: Partial<DspOptions>;
 }
 ```
 
 ## About
-
-The `DspPipelineInitializationOptions` interface specifies options used when initializing the DSP pipeline through the [`InitializeDspPipeline()`](../helpers/InitializeDspPipeline.md) function.  
-It primarily defines the location of the WebAssembly file required by the DSP system.
+Specifies options used when initializing the DSP pipeline.
 
 ## Properties
+- `pathToWasm`: `string` - Path to the WebAssembly file.
+- `pathToWorklet`: `string` - Path to the worklet file.
+- `options?`: `Partial<DspOptions>` - Optional DSP configuration overrides.
 
-| Name | Type | Description |
-|------|------|-------------|
-| `pathToWasm` | `string` | The absolute or relative path to the WebAssembly file. This path is required during DSP pipeline initialization so the library can properly load and instantiate the WASM module. |
-
-## Example
-
-```ts
-import { InitializeDspPipeline } from "@fluexgl/dsp";
-
-async function main() {
-    await InitializeDspPipeline({
-        pathToWasm: "/wasm/fluex_dsp_wasm_bg.wasm"
-    });
-}
-```

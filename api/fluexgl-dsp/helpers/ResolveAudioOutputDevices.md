@@ -1,36 +1,33 @@
 # ResolveAudioOutputDevices
 
-An important helper function within FluexGL DSP. 
+Resolves and returns a list of available audio output devices on the system.
 
 ```ts
 async function ResolveAudioOutputDevices(): Promise<AudioDevice[]>;
 ```
 
+- - -
+
 ## About
+The `ResolveAudioOutputDevices()` function queries the browser for all available media devices and filters the result to return only audio output devices.
 
-The ``ResolveAudioOutputDevices()`` function asynchronously enumerates all available audio devices, filters those of the kind 'audiooutput', and returns an array of [``AudioDevice``](../core/AudioDevice.md).
+Each resolved device is wrapped in an `AudioDevice` abstraction, providing a consistent interface for interacting with output hardware such as speakers, headphones, or virtual audio devices.
 
-**Note: This function is asynchronous, which means you must call it within an asynchronous scope.**
+This function is commonly used to populate device selectors or to allow users to choose their preferred audio output destination.
+
+Note: This function is asynchronous and must be called within an asynchronous scope.
 
 ## Parameters
-This function requires no arguments.
+This function does not accept any parameters.
 
-## Returns [``AudioDevice[]``](../core/AudioDevice.md).
-This function returns an array of [``AudioDevice``](../core/AudioDevice.md) instances.
+## Returns (promised)
 
-## Usage
-```ts
+- `AudioDevice[]` – An array of resolved audio output devices.  
+  The array may be empty if no audio output devices are available or accessible.
 
-import { InitializeDspPipeline, ResolveAudioOutputDevices, AudioDevice } from "@fluexgl/dsp";
+## Error and warnings
 
-async function main() {
+### DOMException (enumerateDevices)
+If the browser blocks access to media device enumeration due to missing permissions or insecure context, `enumerateDevices()` may throw a `DOMException`.
 
-    const hasInitialized: boolean = await InitializeDspPipeline();
-
-    if(!hasInitialized) return;
-
-    const audioOutputDevices: AudioDevice[] = await ResolveAudioOutputDevices();
-
-}
-window.addEventListener("load", main);
-```
+No custom FluexGL-DSP error codes are currently emitted by this function.

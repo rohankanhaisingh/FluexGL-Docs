@@ -1,45 +1,43 @@
 # ResolveDefaultAudioOutputDevice
 
-An important helper function within **FluexGL DSP**.
+Resolves and initializes the system's default audio output device for DSP processing.
 
 ```ts
-export async function ResolveDefaultAudioOutputDevice(): Promise<AudioDevice | null>;
+async function ResolveDefaultAudioOutputDevice(
+    init: DspPipelineInitializationState
+): Promise<AudioDevice | null>;
 ```
+
+- - -
 
 ## About
+The `ResolveDefaultAudioOutputDevice()` function attempts to locate the system's default audio output device and prepare it for DSP processing.
 
-The `ResolveDefaultAudioOutputDevice()` function attempts to retrieve the system's default audio output device.  
-If no default audio device is found, it will print a warning to the console with the warning code  
-`FLUEXGL@AUDIO_WARNING_0001` from the enum `WarningCodes.NO_DEFAULT_AUDIO_DEVICE_FOUND`.
+The function:
+- Enumerates available media devices
+- Identifies the default audio output device
+- Attaches the DSP AudioWorklet processor to the resolved device
 
-**Note:** This function is *asynchronous*, which means you must call it within an asynchronous scope.
+This function is typically called after successful DSP pipeline initialization and serves as the final step before audio playback or processing begins.
+
+Note: This function is asynchronous and must be called within an asynchronous scope.
 
 ## Parameters
+- `init`: `DspPipelineInitializationState` – The DSP pipeline initialization state containing:
+  - `workletBlobUrl`: Blob URL pointing to the constructed AudioWorklet processor
 
-This function takes no arguments.
+## Returns (promised)
 
-## Returns
+- `AudioDevice` – The resolved and initialized default audio output device.
+- `null` – Returned if no default audio output device could be found or initialized.
 
-[`AudioDevice`](../core/AudioDevice.md) | `null` —  
-Returns an [`AudioDevice`](../core/AudioDevice.md) instance representing the default audio output device,  
-or `null` if no default device was found.
+## Error and warnings
 
-## Usage
+### `WARNING:FLUEXGL-DSP@0001`
+No default audio output device was found.  
+`WarningCodes.NO_DEFAULT_AUDIO_DEVICE_FOUND`
 
-```ts
-import { InitializeDspPipeline, ResolveDefaultAudioOutputDevice, AudioDevice, WarningCodes } from "@fluexgl/dsp";
+This warning is emitted when the system reports no default audio output device.
 
-async function main() {
-    const hasInitialized: boolean = await InitializeDspPipeline();
-
-    if (!hasInitialized) return;
-
-    const defaultDevice: AudioDevice | null = await ResolveDefaultAudioOutputDevice();
-
-    if (!defaultDevice) {
-        console.warn(WarningCodes.NO_DEFAULT_AUDIO_DEVICE_FOUND);
-    }
-}
-
-window.addEventListener("load", main);
-```
+### DOMException (enumerateDevices / AudioWorklet)
+Browser-level exceptions may be thrown if media device enumeration fails or if the AudioWorklet cannot be attached to the resolved device.

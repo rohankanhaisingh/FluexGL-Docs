@@ -1,39 +1,48 @@
 # InitializeDspPipeline
 
-An important helper function within FluexGL DSP. 
+Initializes the FluexGL DSP pipeline by preparing audio permissions, loading WebAssembly modules, and constructing the AudioWorklet processor.
 
 ```ts
-async function InitializeDspPipeline(options: DspPipelineInitializationOptions): Promise<boolean>;
+async function InitializeDspPipeline(
+    options: DspPipelineInitializationOptions
+): Promise<DspPipelineInitializationState | null>;
 ```
 
+- - -
+
 ## About
+The `InitializeDspPipeline()` function performs all required setup steps to prepare the FluexGL DSP runtime environment.
 
-The ``InitializeDspPipeline()`` function is the most important function of the entire library. This functions ensures that audio devices can be used, and loads web assembly modules under the hood. Without initializing the dsp pipeline, FluexGL DSP cannot process audio and perform heavy tasks.
+This includes:
+- Verifying permission to access audio input devices
+- Loading the DSP WebAssembly module
+- Fetching and constructing the AudioWorklet processor
+- Measuring and reporting initialization performance
 
-This function will throw an error if the user has not granted permission to FluexGL DSP to access media devices, or if the WASM modules could not be initialized. The error code would be either ``FLUEXGL@AUDIO_ERROR_0001`` or ``FLUEXGL@AUDIO_ERROR_0005``.
+The function is intended to be called once during application startup before any DSP processing is performed.
 
-**Note! This function is asynchroneous, which means you have to call it within a asynchroneous scope.**
+Note: This function is asynchronous and must be called within an asynchronous scope.
 
 ## Parameters
-- ``options``: [``DspPipelineInitializationOptions``](../interfaces/DspPipelineInitializationOptions.md)
+- `options`: `DspPipelineInitializationOptions` – Configuration object containing:
+  - `pathToWasm`: Path or URL to the DSP WebAssembly module
+  - `pathToWorklet`: Path or URL to the AudioWorklet processor source
 
-## Returns ``boolean``
-This function returns a boolean wrapped in a Promise object, representing the state of the initialization. 
+## Returns (promised)
 
-## Usage
-```ts
+- `DspPipelineInitializationState` – An object containing:
+  - `success`: Indicates whether initialization completed successfully
+  - `workletBlobUrl`: A Blob URL referencing the constructed AudioWorklet processor
+- `null` – Reserved for future failure handling (currently not returned).
 
-import { InitializeDspPipeline } from "@fluexgl/dsp";
+## Error and warnings
 
-async function main() {
+### `ERROR:FLUEXGL-DSP@0001`
+Permission to access media devices was not granted.  
+`ErrorCodes.NO_CONTEXT_PERMISSION`
 
-    const hasInitialized: boolean = await InitializeDspPipeline({
-        pathToWasm: "/assets/_dist/fluex_dsp_bg.wasm"
-    });
+This error is emitted if the browser denies access to audio input devices required to initialize the DSP pipeline.
 
-    if(!hasInitialized) return console.log("Aawh man, could not initialize the DSP pipeline".);
+---
 
-    // The rest of the code will be written after initializing the DSP pipeline.
-}
-
-window.addEventListener("load", main);
+Initialization performance metrics are logged via the internal debug logger.
