@@ -20,4 +20,5 @@ jobs:
             cd "${{ secrets.DEPLOY_PATH }}"
             git fetch --all
             git checkout master
-            git pull --ff-only origin master
+            git reset --hard origin/master
+            git clean -fd
