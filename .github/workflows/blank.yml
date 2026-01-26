@@ -2,7 +2,7 @@ name: Deploy (git pull on server)
 
 on:
   push:
-    branches: ["main"]
+    branches: ["master"]
 
 jobs:
   deploy:
@@ -19,5 +19,5 @@ jobs:
             set -e
             cd "${{ secrets.DEPLOY_PATH }}"
             git fetch --all
-            git checkout main
-            git pull --ff-only origin main
+            git checkout master
+            git pull --ff-only origin master
