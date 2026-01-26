@@ -1,4 +1,4 @@
-# FluexGL API documentation
+# 🚀 FluexGL API documentation
 FluexGL is a toolkit for building advanced, WebGPU-powered graphics on the web.
 
 ## About FluexGL
