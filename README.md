@@ -1,5 +1,7 @@
 # FluexGL
 
+## ⚠️ Note: The FluexGL project is currently on hold, as the developer is focusing on other projects.
+
 ## Overview
 FluexGL is a client-side toolkit for building advanced, WebGPU-powered graphics and for manipulating high-performance, Rust-written, engine-driven audio without noticeable latency.
 
