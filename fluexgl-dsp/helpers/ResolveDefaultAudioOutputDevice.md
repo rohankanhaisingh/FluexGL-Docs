@@ -3,7 +3,7 @@
 Resolves and initializes the system's default audio output device for DSP processing.
 
 ```ts
-async function ResolveDefaultAudioOutputDevice(
+async function resolveDefaultAudioOutputDevice(
     init: DspPipelineInitializationState
 ): Promise<AudioDevice | null>;
 ```
@@ -11,7 +11,7 @@ async function ResolveDefaultAudioOutputDevice(
 - - -
 
 ## About
-The `ResolveDefaultAudioOutputDevice()` function attempts to locate the system's default audio output device and prepare it for DSP processing.
+The `resolveDefaultAudioOutputDevice()` function attempts to locate the system's default audio output device and prepare it for DSP processing.
 
 The function:
 - Enumerates available media devices

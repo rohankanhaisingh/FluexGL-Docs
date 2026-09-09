@@ -3,15 +3,17 @@
 Coerces an unknown value into a finite number, falling back to a default when validation fails.
 
 ```ts
-function CoerceFiniteNumber(value: unknown, fallback: number): number;
+function coerceFiniteNumber(value: unknown, fallback: number): number;
 ```
+
+> **Note:** this function is defined and exported from ``utilities/helpers.ts``, but it is **not** re-exported from the package's top-level ``index.ts``. It is not currently reachable as ``import { coerceFiniteNumber } from "@fluex/fluexgl-dsp"`` — it is used internally by the effect classes (e.g. [``Chorus``](../effects/Chorus.md), [``HardClip``](../effects/HardClip.md)) to sanitize constructor and setter arguments. Documented here for completeness.
 
 - - -
 
 ## About
-The `CoerceFiniteNumber()` function ensures that a usable finite numeric value is always returned.
+The `coerceFiniteNumber()` function ensures that a usable finite numeric value is always returned.
 
-It internally validates the provided value using `IsFiniteNumber()` and:
+It internally validates the provided value using `isFiniteNumber()` and:
 - Returns the value directly if it is a finite number
 - Returns the provided fallback value otherwise
 

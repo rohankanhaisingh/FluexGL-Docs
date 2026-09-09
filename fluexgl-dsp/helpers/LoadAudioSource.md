@@ -3,20 +3,20 @@
 An essential helper function within FluexGL DSP for loading audio files from a specified path.
 
 ```ts
-async function LoadAudioSource(path: string, options: Partial<LoadAudioSourceOptions>): Promise<AudioSourceData | null>;
+async function loadAudioSource(path: string, options?: Partial<LoadAudioSourceOptions>): Promise<AudioSourceData | null>;
 ```
 
 - - - 
 
 ## About
-The ``LoadAudioSource()`` function loads an audio file from a given path and decodes it into an AudioBuffer using the Web Audio API.
+The ``loadAudioSource()`` function loads an audio file from a given path and decodes it into an AudioBuffer using the Web Audio API.
 It verifies the file type using MIME type detection and performs error handling when the file type or path cannot be resolved.
 
 Note: This function is asynchronous, which means you must call it within an asynchronous scope..
 
 ## Parameters
 - ``path``: ``string`` - The file path or URL to the audio source.
-- ``options``: [``Partial<LoadAudioSourceOptions>``](https://github.com/rohankanhaisingh/FluexGL-Docs/tree/master/api/fluexgl-dsp/interfaces/LoadAudioSourceOptions.md) - Optional configuration that controls how the function handles unknown or unsupported file types.
+- ``options``: [``Partial<LoadAudioSourceOptions>``](https://github.com/rohankanhaisingh/FluexGL-Docs/tree/master/api/fluexgl-dsp/interfaces/LoadAudioSourceOptions.md) - Optional configuration that controls how the function handles unknown or unsupported file types. Defaults to ``{ allowForeignFileTypes: false }`` when omitted.
 
 ## Returns (promised)
 

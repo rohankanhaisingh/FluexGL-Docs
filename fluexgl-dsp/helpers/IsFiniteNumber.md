@@ -3,13 +3,15 @@
 Utility type guard for validating finite numeric values.
 
 ```ts
-function IsFiniteNumber(value: unknown): value is number;
+function isFiniteNumber(value: unknown): value is number;
 ```
+
+> **Note:** this function is defined and exported from ``utilities/helpers.ts``, but it is **not** re-exported from the package's top-level ``index.ts``. It is not currently reachable as ``import { isFiniteNumber } from "@fluex/fluexgl-dsp"`` — it is used internally by [``coerceFiniteNumber()``](./CoerceFiniteNumber.md). Documented here for completeness.
 
 - - -
 
 ## About
-The `IsFiniteNumber()` function is a small utility helper that checks whether a given value is a finite JavaScript number.
+The `isFiniteNumber()` function is a small utility helper that checks whether a given value is a finite JavaScript number.
 
 It performs two validations:
 - Ensures the value is of type `number`

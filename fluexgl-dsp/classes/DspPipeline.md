@@ -13,8 +13,8 @@ const pipeline = new DspPipeline({
   options: { /* DSP global options */ }
 });
 
-await pipeline.Init();
-const device = await pipeline.ResolveDefaultAudioOutputDevice();
+await pipeline.init();
+const device = await pipeline.resolveDefaultAudioOutputDevice();
 ```
 
 - - -
@@ -42,7 +42,8 @@ new DspPipeline({ pathToWasm, pathToWorklet, options }: DspPipelineInitializatio
 
 ## Methods
 
-### ``Init(): Promise<boolean>``
+### ``init(): Promise<boolean>``
+Convenience wrapper around ``initializeDpsPipeline()``.
 
 #### Arguments
 No arguments
@@ -50,7 +51,7 @@ No arguments
 #### Returns
 - ``Promise<boolean>``
 
-### ``InitializeDpsPipeline(): Promise<boolean>``
+### ``initializeDpsPipeline(): Promise<boolean>``
 
 #### Arguments
 No arguments
@@ -58,7 +59,7 @@ No arguments
 #### Returns
 - ``Promise<boolean>``
 
-### ``ResolveDefaultAudioOutputDevice(): Promise<AudioDevice | null>``
+### ``resolveDefaultAudioOutputDevice(): Promise<AudioDevice | null>``
 
 #### Arguments
 No arguments
@@ -66,14 +67,14 @@ No arguments
 #### Returns
 - ``Promise<AudioDevice | null>`` - The default [``AudioDevice``](./AudioDevice.md) instance, or ``null`` when no default output device is found or initialization is missing.
 
-### ``TellMeWhatTheFuckThisWholeLibraryActuallyDoes(): void``
+### ``tellMeWhatTheFuckThisWholeLibraryActuallyDoes(): string``
 
 
 #### Arguments
 No arguments
 
 #### Returns
-- ``void``
+- ``string``
 
 ## Events
 
@@ -92,15 +93,15 @@ This class does not define public getters or setters.
 ### Example 1: initialize and resolve the default output device
 ```ts
 const pipeline = new DspPipeline({ pathToWasm, pathToWorklet, options: {} });
-const ok = await pipeline.InitializeDpsPipeline();
+const ok = await pipeline.initializeDpsPipeline();
 if (!ok) throw new Error("DSP pipeline init failed");
 
-const device = await pipeline.ResolveDefaultAudioOutputDevice();
+const device = await pipeline.resolveDefaultAudioOutputDevice();
 if (!device) throw new Error("No default audio output device");
 ```
 
-### Example 2: quick init via Init()
+### Example 2: quick init via init()
 ```ts
 const pipeline = new DspPipeline({ pathToWasm, pathToWorklet, options: {} });
-await pipeline.Init();
+await pipeline.init();
 ```

@@ -25,7 +25,7 @@ import { DspPipeline } from "@fluex/fluexgl-dsp";
         }
     });
 
-    await pipeline.Init();
+    await pipeline.init();
 })();
 ```
 
@@ -35,7 +35,7 @@ This allows FluexGL DSP to override the maximum number of audio buffer source no
 import { AudioClip } from "@fluex/fluexgl-dsp";
 
 const clip = new AudioClip(sourceData);
-clip.SetMaxAudioBufferSourceNodes(100);
+clip.setMaxAudioBufferSourceNodes(100);
 ```
 
 Now, every time you play the audio clip, the buffer source is duplicated and played immediately, instead of waiting for the first buffer source to finish before creating a new one.

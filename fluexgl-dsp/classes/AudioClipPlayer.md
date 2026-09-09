@@ -9,14 +9,14 @@ import { AudioClipPlayer, AudioClip, Channel } from "@fluex/fluexgl-dsp";
 
 ...
 
-const context = audioDevice.GetContext();
-const channel = audioDevice.CreateChannel();
+const context = audioDevice.getContext();
+const channel = audioDevice.createChannel();
 
 const player = new AudioClipPlayer(context);
 const clip = new AudioClip(audioSourceData);
 
-player.AttachAudioClip(clip);
-player.Send(channel);
+player.attachAudioClip(clip);
+player.send(channel);
 ```
 
 - - -
@@ -45,7 +45,7 @@ A unique id, automatically generated on construction. Should NOT be changed.
 All [``AudioClip``](./AudioClip.md) instances currently attached to this player.
 
 ### ``outputGainNode: GainNode | null``
-Internal output gain node. This is where volume is applied and what gets connected to a target via ``Send()``.
+Internal output gain node. This is where volume is applied and what gets connected to a target via ``send()``.
 
 ### ``context: AudioContext | null``
 The ``AudioContext`` used to create this player’s internal nodes. Set during construction.
@@ -57,8 +57,8 @@ The current send target ([``Channel``](./Channel.md) or [``Master``](./Master.md
 
 ## Methods
 
-### ``AttachAudioClip(audioClip: AudioClip): void``
-Attaches an [``AudioClip``](./AudioClip.md) to this player. Initializes the clip with this player and stores it in ``audioClips``. Throws if the clip is already attached.
+### ``attachAudioClip(audioClip: AudioClip): void``
+Attaches an [``AudioClip``](./AudioClip.md) to this player. Initializes the clip with this player and stores it in ``audioClips``. Logs an error if the clip is already attached.
 
 #### Arguments
 - ``audioClip``: [``AudioClip``](./AudioClip.md) - The clip to attach.
@@ -66,8 +66,8 @@ Attaches an [``AudioClip``](./AudioClip.md) to this player. Initializes the clip
 #### Returns
 - ``void``
 
-### ``DetachAudioClip(clip: AudioClip): void``
-Detaches a previously attached [``AudioClip``](./AudioClip.md) from this player. Throws if the clip is not attached.
+### ``detachAudioClip(clip: AudioClip): void``
+Detaches a previously attached [``AudioClip``](./AudioClip.md) from this player. Logs an error if the clip is not attached.
 
 #### Arguments
 - ``clip``: [``AudioClip``](./AudioClip.md) - The clip to detach.
@@ -75,7 +75,7 @@ Detaches a previously attached [``AudioClip``](./AudioClip.md) from this player.
 #### Returns
 - ``void``
 
-### ``Send(channel: Channel | Master): void``
+### ``send(channel: Channel | Master): void``
 Routes this player’s ``outputGainNode`` to a [``Channel``](./Channel.md) or the [``Master``](./Master.md) by connecting to the target’s ``input`` node.
 
 #### Arguments
@@ -84,7 +84,7 @@ Routes this player’s ``outputGainNode`` to a [``Channel``](./Channel.md) or th
 #### Returns
 - ``void``
 
-### ``Unsend(): void``
+### ``unsend(): void``
 Disconnects this player’s ``outputGainNode`` from its current target (if any) and clears ``channel``.
 
 #### Arguments
@@ -93,7 +93,7 @@ No arguments
 #### Returns
 - ``void``
 
-### ``SetVolume(value: number): void``
+### ``setVolume(value: number): void``
 Sets the output volume by writing to ``outputGainNode.gain.value``. The value is clamped between ``0`` and ``1``.
 
 #### Arguments
@@ -102,8 +102,8 @@ Sets the output volume by writing to ``outputGainNode.gain.value``. The value is
 #### Returns
 - ``void``
 
-### ``StopAll(): void``
-Stops playback for all attached clips by calling ``Stop()`` on each clip in ``audioClips``.
+### ``stopAll(): void``
+Stops playback for all attached clips by calling ``stop()`` on each clip in ``audioClips``.
 
 #### Arguments
 No arguments
@@ -111,7 +111,7 @@ No arguments
 #### Returns
 - ``void``
 
-### ``Dispose(): void``
+### ``dispose(): void``
 Stops all clips, disconnects routing, disconnects the output node, and clears internal references (clips, nodes, context, channel). Use when you no longer need this player.
 
 #### Arguments
@@ -120,7 +120,7 @@ No arguments
 #### Returns
 - ``void``
 
-### ``SetLabel(label: string): void``
+### ``setLabel(label: string): void``
 Updates the ``label`` of this player.
 
 #### Arguments
@@ -137,7 +137,11 @@ This class does not emit custom events.
 
 ## Getters and setters
 
-This class does not define public getters or setters.
+### ``get length(): number``
+Returns the number of [``AudioClip``](./AudioClip.md) instances currently attached to this player (``audioClips.length``).
+
+### ``get volume(): number``
+Returns the current output volume, read from ``outputGainNode.gain.value``. Returns ``0`` when no output gain node is available.
 
 - - -
 
@@ -152,8 +156,8 @@ const channel = new Channel(context);
 
 // Use the Channel-owned player in real usage
 const clip = new AudioClip(audioSourceData);
-channel.AttachAudioClip(clip);
+channel.attachAudioClip(clip);
 
 // Stop everything routed through the channel’s player
-channel.audioClipPlayer.StopAll();
+channel.audioClipPlayer.stopAll();
 ```

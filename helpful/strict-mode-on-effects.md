@@ -23,7 +23,7 @@ new LowPassFilter({ strictMode: StrictMode.Disabled });
 This sends a signal to the AudioWorkletNode to perform additional checks inside the processing loop. To catch errors related to detected NaN or Infinity values, you can attach an event listener to the AudioWorkletNode. For example:
 
 ```ts
-lowPassFilter.AddEventListener("incoming-processor-error", function(message) {
+lowPassFilter.addEventListener("incoming-processor-error", function(message) {
     // Do something with 'message'.
 });
 ```

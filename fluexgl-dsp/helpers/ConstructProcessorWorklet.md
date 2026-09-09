@@ -3,13 +3,15 @@
 Constructs a Blob URL for an AudioWorklet processor from provided JavaScript source code.
 
 ```ts
-function ConstructProcessorWorklet(code: string): string;
+function constructProcessorWorklet(code: string): string;
 ```
+
+> **Note:** this function is defined and exported from ``utilities/helpers.ts``, but it is **not** re-exported from the package's top-level ``index.ts``. It is not currently reachable as ``import { constructProcessorWorklet } from "@fluex/fluexgl-dsp"`` — it is used internally by [``DspPipeline``](../classes/DspPipeline.md) and by the module-level [``initializeDspPipeline()``](./InitializeDspPipeline.md) helper. Documented here for completeness.
 
 - - -
 
 ## About
-The `ConstructProcessorWorklet()` function creates a Blob from a provided JavaScript source string and converts it into an object URL that can be used to register an `AudioWorkletProcessor`.
+The `constructProcessorWorklet()` function creates a Blob from a provided JavaScript source string and converts it into an object URL that can be used to register an `AudioWorkletProcessor`.
 
 This function is primarily used during DSP pipeline initialization to dynamically construct AudioWorklet processor files at runtime, allowing flexible loading and bundling strategies.
 

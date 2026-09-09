@@ -3,7 +3,7 @@
 Initializes the FluexGL DSP pipeline by preparing audio permissions, loading WebAssembly modules, and constructing the AudioWorklet processor.
 
 ```ts
-async function InitializeDspPipeline(
+async function initializeDspPipeline(
     options: DspPipelineInitializationOptions
 ): Promise<DspPipelineInitializationState | null>;
 ```
@@ -11,7 +11,9 @@ async function InitializeDspPipeline(
 - - -
 
 ## About
-The `InitializeDspPipeline()` function performs all required setup steps to prepare the FluexGL DSP runtime environment.
+The `initializeDspPipeline()` function performs all required setup steps to prepare the FluexGL DSP runtime environment.
+
+Note this is a standalone module-level function, distinct from (and not called by) the [``DspPipeline``](../classes/DspPipeline.md) class's own ``initializeDpsPipeline()`` method — both perform the same steps independently.
 
 This includes:
 - Verifying permission to access audio input devices
@@ -27,6 +29,7 @@ Note: This function is asynchronous and must be called within an asynchronous sc
 - `options`: `DspPipelineInitializationOptions` – Configuration object containing:
   - `pathToWasm`: Path or URL to the DSP WebAssembly module
   - `pathToWorklet`: Path or URL to the AudioWorklet processor source
+  - `options?`: `Partial<DspOptions>` – Optional global DSP configuration overrides. Note: unlike the ``DspPipeline`` class constructor, this standalone function does not apply these overrides to the global ``DSP`` options object itself.
 
 ## Returns (promised)
 

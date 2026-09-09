@@ -3,7 +3,7 @@
 Loads and registers AudioWorklet processor modules on a specific audio device.
 
 ```ts
-async function LoadWorkletOnAudioDevice(
+async function loadWorkletOnAudioDevice(
     audioDevice: AudioDevice,
     workletBlobUrl: string
 ): Promise<boolean>;
@@ -12,7 +12,7 @@ async function LoadWorkletOnAudioDevice(
 - - -
 
 ## About
-The `LoadWorkletOnAudioDevice()` function registers an AudioWorklet processor module on the `AudioContext` associated with a given `AudioDevice`.
+The `loadWorkletOnAudioDevice()` function registers an AudioWorklet processor module on the `AudioContext` associated with a given `AudioDevice`.
 
 This function:
 - Attaches DSP worklet modules to the device's master audio context

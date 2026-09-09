@@ -3,13 +3,13 @@
 A lightweight helper function within FluexGL DSP for decoding audio data directly from a Blob.
 
 ```ts
-async function LoadAudioSourceFromBlob(blob: Blob): Promise<AudioSourceData | null>;
+async function loadAudioSourceFromBlob(blob: Blob): Promise<AudioSourceData | null>;
 ```
 
 - - -
 
 ## About
-The `LoadAudioSourceFromBlob()` function decodes audio data from a provided `Blob` object into an `AudioBuffer` using the Web Audio API.
+The `loadAudioSourceFromBlob()` function decodes audio data from a provided `Blob` object into an `AudioBuffer` using the Web Audio API.
 
 This function is designed for situations where audio data is already available in memory rather than referenced by a file path or URL. Common use cases include file uploads, drag-and-drop interactions, or audio data retrieved via browser APIs such as `fetch()`.
 

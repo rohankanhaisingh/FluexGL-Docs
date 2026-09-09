@@ -1,6 +1,6 @@
 # Class ``AudioDevice``
 
-Represents an audio output device wrapper that owns an ``AudioContext`` and helps create and manage [``Channel``](./Channel.md) and [``Master``](./Master.md) routing objects. Usually constructed when calling [``ResolveDefaultAudioOutputDevice()``](../helpers/ResolveDefaultAudioOutputDevice.md).
+Represents an audio output device wrapper that owns an ``AudioContext`` and helps create and manage [``Channel``](./Channel.md) and [``Master``](./Master.md) routing objects. Usually constructed when calling [``resolveDefaultAudioOutputDevice()``](../helpers/ResolveDefaultAudioOutputDevice.md).
 
 ## Example
 
@@ -11,11 +11,11 @@ import { AudioDevice } from "@fluex/fluexgl-dsp";
 const deviceInfo = myMediaDeviceInfo;
 
 const device = new AudioDevice(deviceInfo);
-const channel = device.CreateChannel();
+const channel = device.createChannel();
 
 // Create an additional master bus and set it as active
-const master = device.CreateMasterChannel();
-device.SetMasterChannel(master);
+const master = device.createMasterChannel();
+device.setMasterChannel(master);
 ```
 
 - - -
@@ -24,7 +24,7 @@ device.SetMasterChannel(master);
 Constructs a new AudioDevice for the given output device and creates an internal ``AudioContext`` along with its default master channel.
 
 ```ts
-new AudioDevice(public deviceInfo: MediaDeviceInfo): AudioDevice;
+new AudioDevice(deviceInfo: MediaDeviceInfo): AudioDevice;
 ```
 
 ### Arguments
@@ -33,6 +33,9 @@ new AudioDevice(public deviceInfo: MediaDeviceInfo): AudioDevice;
 - - -
 
 ## Properties
+
+### ``deviceInfo: MediaDeviceInfo``
+The device information this instance was constructed with. Set via the constructor.
 
 ### ``id: string``
 A unique id for this AudioDevice instance. Automatically generated when constructing the device. Should NOT be changed.
@@ -47,13 +50,31 @@ The ``AudioContext`` owned by this device. Used for creating channels and master
 The currently selected active [``Master``](./Master.md) channel for this device.
 
 ### ``masterChannels: Master[]``
-All created [``Master``](./Master.md) channels owned by this device.
+All created [``Master``](./Master.md) channels owned by this device via ``createMasterChannel()``. Note that the default ``masterChannel`` created in the constructor is **not** automatically pushed into this array.
+
+### ``sampleRate: number`` *(readonly)*
+The sample rate of ``context``, captured at construction time.
+
+### ``baseLatency: number`` *(readonly)*
+The base latency of ``context``, captured at construction time.
+
+### ``outputLatency: number`` *(readonly)*
+The output latency of ``context``, captured at construction time.
+
+### ``state: AudioContextState`` *(readonly)*
+The state of ``context`` (e.g. ``"running"``, ``"suspended"``), captured at construction time.
+
+### ``currentTime: number`` *(readonly)*
+The ``currentTime`` of ``context``, captured at construction time. Because this is read once during construction, it does **not** update as time passes — use ``getContext().currentTime`` for a live value.
+
+### ``maximumFrequency: number`` *(readonly)*
+Half of ``context.sampleRate`` (the Nyquist frequency), captured at construction time.
 
 - - -
 
 ## Methods
 
-### ``GetMasterChannel(): Master``
+### ``getMasterChannel(): Master``
 Returns the currently active [``Master``](./Master.md) channel.
 
 #### Arguments
@@ -62,8 +83,8 @@ No arguments
 #### Returns
 - [``Master``](./Master.md)
 
-### ``SetMasterChannel(channel: Master): void``
-Sets the active [``Master``](./Master.md) channel. This is typically one of the entries in ``masterChannels``.
+### ``setMasterChannel(channel: Master): void``
+Sets the active [``Master``](./Master.md) channel. This is typically one of the entries in ``masterChannels``. Logs an error and does nothing if the given channel is already the active one.
 
 #### Arguments
 - ``channel``: [``Master``](./Master.md) - The master channel to set as active.
@@ -71,7 +92,7 @@ Sets the active [``Master``](./Master.md) channel. This is typically one of the 
 #### Returns
 - ``void``
 
-### ``CreateMasterChannel(): Master``
+### ``createMasterChannel(): Master``
 Creates a new [``Master``](./Master.md) channel using this device’s ``AudioContext``, stores it in ``masterChannels``, and returns it.
 
 #### Arguments
@@ -80,7 +101,7 @@ No arguments
 #### Returns
 - [``Master``](./Master.md)
 
-### ``GetContext(): AudioContext``
+### ``getContext(): AudioContext``
 Returns this device’s ``AudioContext``.
 
 #### Arguments
@@ -89,11 +110,11 @@ No arguments
 #### Returns
 - ``AudioContext``
 
-### ``CreateChannel(): Channel``
+### ``createChannel(label?: string): Channel``
 Creates and returns a new [``Channel``](./Channel.md) using this device’s ``AudioContext``.
 
 #### Arguments
-No arguments
+- ``label?``: ``string`` - Optional label for the new channel.
 
 #### Returns
 - [``Channel``](./Channel.md)
@@ -104,7 +125,7 @@ This class does not emit custom events.
 
 ## Getters and setters
 
-This class does not define public getters or setters.
+This class does not define public getters or setters. Note that ``sampleRate``, ``baseLatency``, ``outputLatency``, ``state``, ``currentTime`` and ``maximumFrequency`` are plain ``readonly`` properties rather than getters, and are only computed once at construction time.
 
 ## Examples
 
@@ -112,23 +133,23 @@ This class does not define public getters or setters.
 ```ts
 const device = new AudioDevice(deviceInfo);
 
-const a = device.CreateChannel();
-const b = device.CreateChannel();
+const a = device.createChannel();
+const b = device.createChannel();
 
 // Route a into b, and b into the active master
-a.Send(b);
-b.Send(device.GetMasterChannel());
+a.send(b);
+b.send(device.getMasterChannel());
 ```
 
 ### Example 2: creating multiple master busses
 ```ts
 const device = new AudioDevice(deviceInfo);
 
-const masterA = device.GetMasterChannel();
-const masterB = device.CreateMasterChannel();
+const masterA = device.getMasterChannel();
+const masterB = device.createMasterChannel();
 
 // Switch active master
-device.SetMasterChannel(masterB);
+device.setMasterChannel(masterB);
 
 // You can still keep references to older master channels
 console.log(masterA.id, masterB.id);

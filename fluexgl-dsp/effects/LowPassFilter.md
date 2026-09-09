@@ -3,7 +3,9 @@
 A low-pass filter audio effector that attenuates frequencies above a configurable cutoff frequency.
 It is commonly used to remove high-frequency content, smooth signals, or create filter sweeps.
 
-Internally this effector is based on the Web Audio API ``BiquadFilterNode`` with ``lowpass`` type.
+Internally this effector runs its filtering inside the ``LowPassFilterProcessor`` AudioWorklet processor.
+
+Extends [``Effector``](../classes/Effector.md).
 
 ## Example
 
@@ -11,11 +13,11 @@ Internally this effector is based on the Web Audio API ``BiquadFilterNode`` with
 import { LowPassFilter } from "@fluex/fluexgl-dsp";
 
 const lowPass = new LowPassFilter({
-    frequency: 1200,
+    cutoff: 1200,
     q: 0.7
 });
 
-await lowPass.InitializeOnAttachment(audioContext);
+await lowPass.initializeOnAttachment(audioContext);
 ```
 
 - - -
@@ -23,13 +25,13 @@ await lowPass.InitializeOnAttachment(audioContext);
 ## Constructor
 
 ```ts
-new LowPassFilter(options?: Partial<LowPassFilterOptions>): LowPassFilter;
+new LowPassFilter(options: Partial<LowPassFilterOptions>): LowPassFilter;
 ```
 
 ### Arguments
 
-- ``options?``: ``Partial<LowPassFilterOptions>``  
-  Optional low-pass filter configuration options.
+- ``options``: [``Partial<LowPassFilterOptions>``](../interfaces/LowPassFilterOptions.md)
+  Low-pass filter configuration options (``cutoff``, ``minFrequency``, ``q``, ``strictMode``). Falls back to the class defaults below for any field that is missing or not a finite number.
 
 - - -
 
@@ -41,22 +43,30 @@ Custom label for this effector. Defaults to ``"LowPassFilter"``.
 ### ``name: string``
 Internal name for this effector. Defaults to ``"LowPassFilter"``.
 
-### ``filterNode: BiquadFilterNode | null``
-Underlying Web Audio API filter node. Available after initialization.
+### ``cutoff: number``
+Cutoff frequency in Hz. Defaults to ``1000``.
+
+### ``q: number``
+Resonance/Q factor, clamped between ``0.0001`` and ``4`` by ``setQ()``. Defaults to ``0.7``.
+
+### ``minFrequency: number``
+Lower bound applied to ``cutoff`` by ``setCutoff()``. Defaults to ``10``.
+
+### ``strictMode: StrictMode``
+Validation mode passed through to the processor. Defaults to ``StrictMode.Disabled``.
 
 - - -
 
 ## Methods
 
-### ``InitializeOnAttachment(context: AudioContext): Promise<void>``
+### ``initializeOnAttachment(context: AudioContext): Promise<void>``
 
-Initializes the low-pass filter by creating a ``BiquadFilterNode`` with ``type = "lowpass"`` and
-applying the configured options.
+Initializes the filter by creating the AudioWorklet processor node (``LowPassFilterProcessor``) with the current option values.
 
 #### Arguments
 
 - ``context``: ``AudioContext``  
-  The audio context used to construct the filter node.
+  The audio context used to construct the AudioWorklet node.
 
 #### Returns
 
@@ -64,16 +74,62 @@ applying the configured options.
 
 - - -
 
-### ``SetOptions(options: Partial<LowPassFilterOptions>): void``
+### ``returnOptionsAsObject(): LowPassFilterOptions``
 
-Applies filter parameters such as cutoff frequency and Q factor.
-Live-updates the internal ``BiquadFilterNode`` when available.
-
-#### Arguments
-
-- ``options``: ``Partial<LowPassFilterOptions>``  
-  Options to apply.
+Returns a plain object snapshot of the current ``cutoff``, ``minFrequency``, ``q`` and ``strictMode`` values.
 
 #### Returns
 
-- ``void``
+- [``LowPassFilterOptions``](../interfaces/LowPassFilterOptions.md)
+
+- - -
+
+### ``setCutoff(cutoff?: number): boolean``
+
+Updates ``cutoff``, clamped to at least ``minFrequency`` and to the current context's sample rate, and forwards the change to the AudioWorklet processor.
+
+#### Arguments
+
+- ``cutoff?``: ``number`` - Defaults to ``1000`` when omitted.
+
+#### Returns
+
+- ``boolean`` - ``false`` if this effect has no ``context`` yet, otherwise the result of sending the message to the processor.
+
+- - -
+
+### ``setMinFrequency(minFrequency?: number): boolean``
+
+Updates ``minFrequency`` (floored at ``10``) and forwards the change to the AudioWorklet processor.
+
+#### Arguments
+
+- ``minFrequency?``: ``number`` - Defaults to ``10`` when omitted.
+
+#### Returns
+
+- ``boolean``
+
+- - -
+
+### ``setQ(q?: number): boolean``
+
+Updates ``q``, clamped between ``0.0001`` and ``4``, and forwards the change to the AudioWorklet processor.
+
+#### Arguments
+
+- ``q?``: ``number`` - Defaults to ``0.7`` when omitted.
+
+#### Returns
+
+- ``boolean``
+
+- - -
+
+## Events
+
+Inherited from [``Effector``](../classes/Effector.md) (``incoming-processor-message``, ``incoming-processor-warning``, ``incoming-processor-error``, ``processor-wasm-instantiated``).
+
+## Getters and setters
+
+This class does not define public getters or setters.

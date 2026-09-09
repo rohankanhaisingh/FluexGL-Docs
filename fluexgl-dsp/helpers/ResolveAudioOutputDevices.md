@@ -3,13 +3,13 @@
 Resolves and returns a list of available audio output devices on the system.
 
 ```ts
-async function ResolveAudioOutputDevices(): Promise<AudioDevice[]>;
+async function resolveAudioOutputDevices(): Promise<AudioDevice[]>;
 ```
 
 - - -
 
 ## About
-The `ResolveAudioOutputDevices()` function queries the browser for all available media devices and filters the result to return only audio output devices.
+The `resolveAudioOutputDevices()` function queries the browser for all available media devices and filters the result to return only audio output devices.
 
 Each resolved device is wrapped in an `AudioDevice` abstraction, providing a consistent interface for interacting with output hardware such as speakers, headphones, or virtual audio devices.
 

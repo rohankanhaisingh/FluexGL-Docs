@@ -3,7 +3,7 @@
 Sends a typed command message to an AudioWorklet node with basic validation and safety checks.
 
 ```ts
-function SendMessageToWorklet<T, K = any>(
+function sendMessageToWorklet<T, K = any>(
     node: AudioWorkletNode | null,
     commandId: T,
     data: K
@@ -13,7 +13,7 @@ function SendMessageToWorklet<T, K = any>(
 - - -
 
 ## About
-The `SendMessageToWorklet()` function provides a safe and consistent way to send command messages to an `AudioWorkletNode`.
+The `sendMessageToWorklet()` function provides a safe and consistent way to send command messages to an `AudioWorkletNode`.
 
 Before sending the message, the function:
 - Verifies that the target worklet node exists

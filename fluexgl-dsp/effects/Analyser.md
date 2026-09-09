@@ -16,10 +16,10 @@ const analyser = new Analyser({
     maxDecibels: -10
 });
 
-await analyser.InitializeOnAttachment(audioContext);
+await analyser.initializeOnAttachment(audioContext);
 
-const waveform = analyser.GetWaveformFloatData();
-const spectrum = analyser.GetFrequencyByteData();
+const waveform = analyser.getWaveformFloatData();
+const spectrum = analyser.getFrequencyByteData();
 ```
 
 - - -
@@ -29,6 +29,11 @@ const spectrum = analyser.GetFrequencyByteData();
 ```ts
 new Analyser(options?: Partial<AnalyserOptions>): Analyser;
 ```
+
+``AnalyserOptions`` here is the standard Web Audio API type (``fftSize``, ``smoothingTimeConstant``, ``minDecibels``, ``maxDecibels``), not a FluexGL-specific interface. Defaults to ``{ fftSize: 32, smoothingTimeConstant: 0.8, minDecibels: -90, maxDecibels: -10 }``.
+
+### Arguments
+- ``options?``: ``Partial<AnalyserOptions>`` - Optional analyser configuration. Only ``fftSize`` values supported by the Web Audio API (``32``–``32768``, power of two) are applied.
 
 - - -
 
@@ -46,14 +51,20 @@ new Analyser(options?: Partial<AnalyserOptions>): Analyser;
 
 ## Methods
 
-### ``InitializeOnAttachment(context: AudioContext): Promise<void>``
+### ``initializeOnAttachment(context: AudioContext): Promise<void>``
+Creates the underlying ``AnalyserNode`` from the configured options and (re)allocates the typed-array buffers to match its ``fftSize``.
 
-### ``SetOptions(options: Partial<AnalyserOptions>): void``
+### ``setOptions(options: Partial<AnalyserOptions>): void``
+Applies new analyser options. Rejects unsupported ``fftSize`` values. If ``fftSize`` changes and the node already exists, the typed-array buffers are reallocated.
 
-### ``GetWaveformFloatData(): Float32Array | null``
+### ``getWaveformFloatData(): Float32Array | null``
+Fills and returns ``waveformFloat32ArrayBuffer`` with time-domain data (``getFloatTimeDomainData``). Returns ``null`` if not yet attached.
 
-### ``GetWaveformByteData(): Uint8Array | null``
+### ``getWaveformByteData(): Uint8Array | null``
+Fills and returns ``waveformUint8ArrayBuffer`` with time-domain data (``getByteTimeDomainData``). Returns ``null`` if not yet attached.
 
-### ``GetFrequencyFloatData(): Float32Array | null``
+### ``getFrequencyFloatData(): Float32Array | null``
+Fills and returns ``frequencyFloat32ArrayBuffer`` with frequency-domain data (``getFloatFrequencyData``). Returns ``null`` if not yet attached.
 
-### ``GetFrequencyByteData(): Uint8Array | null``
+### ``getFrequencyByteData(): Uint8Array | null``
+Fills and returns ``frequencyUint8ArrayBuffer`` with frequency-domain data (``getByteFrequencyData``). Returns ``null`` if not yet attached.

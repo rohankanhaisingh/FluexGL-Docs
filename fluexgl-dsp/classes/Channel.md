@@ -8,7 +8,7 @@ An audio routing unit that can host an effect chain, attach audio clips via an i
 import { Channel } from "@fluex/fluexgl-dsp";
 
 const channel = new Channel(context);
-channel.Send(master);
+channel.send(master);
 ```
 
 - - -
@@ -17,11 +17,12 @@ channel.Send(master);
 Constructs a new Channel and initializes its internal audio nodes (input → effects → panner → analyser → gain → output) and its [``AudioClipPlayer``](./AudioClipPlayer.md).
 
 ```ts
-new Channel(context: AudioContext): Channel;
+new Channel(context: AudioContext, label?: string): Channel;
 ```
 
 ### Arguments
 - ``context``: ``AudioContext`` - The AudioContext used to create this channel's internal audio nodes.
+- ``label?``: ``string`` - Optional label for this channel. Defaults to ``"Channel"``.
 
 - - -
 
@@ -46,7 +47,7 @@ Analyser node used for visualization / analysis of this channel's signal.
 Gain node used to control the channel's volume after analysis.
 
 ### ``output: AudioNode | null``
-Output node of this channel. This node is connected to other channels when calling ``Send()``.
+Output node of this channel. This node is connected to other channels when calling ``send()``.
 
 ### ``effects: Effector[]``
 List of attached [``Effector``](./Effector.md) instances. These are wired between ``input`` and ``stereoPannerNode``.
@@ -55,7 +56,7 @@ List of attached [``Effector``](./Effector.md) instances. These are wired betwee
 The AudioContext this channel was constructed with.
 
 ### ``sends: Channel[]``
-Channels this channel is currently connected to via ``Send()``.
+Channels this channel is currently connected to via ``send()``.
 
 ### ``audioClipPlayer: AudioClipPlayer | null``
 [``AudioClipPlayer``](./AudioClipPlayer.md) owned by this channel. Used to attach and play [``AudioClip``](./AudioClip.md) instances into this channel.
@@ -64,26 +65,26 @@ Channels this channel is currently connected to via ``Send()``.
 
 ## Methods
 
-### ``AddEffect(effect: Effector): void``
-Adds an [``Effector``](./Effector.md) to this channel, initializes it using this channel's ``AudioContext``, and rebuilds the internal effect chain routing.
+### ``addEffect(effect: Effector): Channel``
+Adds an [``Effector``](./Effector.md) to this channel, initializes it using this channel's ``AudioContext``, and rebuilds the internal effect chain routing. Throws if the channel has no ``AudioContext`` or if the effect was already added.
 
 #### Arguments
 - ``effect``: [``Effector``](./Effector.md) - The effect instance to add.
 
 #### Returns
-- ``void``
+- ``Channel`` - The same channel. Can be used to stack methods.
 
-### ``AttachEffect(effect: Effector): void``
-Alias for ``AddEffect(effect)``.
+### ``attachEffect(effect: Effector): Channel``
+Alias for ``addEffect(effect)``.
 
 #### Arguments
 - ``effect``: [``Effector``](./Effector.md) - The effect instance to attach.
 
 #### Returns
-- ``void``
+- ``Channel`` - The same channel. Can be used to stack methods.
 
-### ``RemoveEffect(effect: Effector): void``
-Removes an attached [``Effector``](./Effector.md) from this channel, disconnects its audio node, and rebuilds the internal effect chain routing.
+### ``removeEffect(effect: Effector): void``
+Removes an attached [``Effector``](./Effector.md) from this channel, disconnects its audio node, and rebuilds the internal effect chain routing. Logs an error if the effect is not part of this channel.
 
 #### Arguments
 - ``effect``: [``Effector``](./Effector.md) - The effect instance to remove.
@@ -91,8 +92,17 @@ Removes an attached [``Effector``](./Effector.md) from this channel, disconnects
 #### Returns
 - ``void``
 
-### ``DetachEffect(effect: Effector): void``
-Alias for ``RemoveEffect(effect)``.
+### ``removeAllEffects(): void``
+Removes every effect currently attached to this channel by calling ``removeEffect()`` for each one.
+
+#### Arguments
+No arguments
+
+#### Returns
+- ``void``
+
+### ``detachEffect(effect: Effector): void``
+Alias for ``removeEffect(effect)``.
 
 #### Arguments
 - ``effect``: [``Effector``](./Effector.md) - The effect instance to detach.
@@ -100,7 +110,25 @@ Alias for ``RemoveEffect(effect)``.
 #### Returns
 - ``void``
 
-### ``Send(channel: Channel | Master): void``
+### ``detachAllEffects(): void``
+Alias for ``removeAllEffects()``.
+
+#### Arguments
+No arguments
+
+#### Returns
+- ``void``
+
+### ``rebuildEffectChain(): void``
+Publicly re-runs the internal effect chain rebuild (reconnects ``input`` through the active effects into ``stereoPannerNode``). Useful if the automatic rebuild did not run as expected.
+
+#### Arguments
+No arguments
+
+#### Returns
+- ``void``
+
+### ``send(channel: Channel | Master): void``
 Connects this channel's ``output`` to another [``Channel``](./Channel.md) (to its ``input``) or to the [``Master``](./Master.md). Prevents self-links, mismatched AudioContexts, duplicate links, and feedback loops.
 
 #### Arguments
@@ -109,7 +137,7 @@ Connects this channel's ``output`` to another [``Channel``](./Channel.md) (to it
 #### Returns
 - ``void``
 
-### ``Unsend(channel: Channel | Master): void``
+### ``unsend(channel: Channel | Master): void``
 Disconnects this channel from a previously linked [``Channel``](./Channel.md) or [``Master``](./Master.md) and removes it from ``sends``.
 
 #### Arguments
@@ -118,16 +146,7 @@ Disconnects this channel from a previously linked [``Channel``](./Channel.md) or
 #### Returns
 - ``void``
 
-### ``HasAudioClipPlayer(): boolean``
-Returns whether this channel has a constructed [``AudioClipPlayer``](./AudioClipPlayer.md).
-
-#### Arguments
-No arguments
-
-#### Returns
-- ``boolean`` - ``true`` if ``audioClipPlayer`` is defined, otherwise ``false``.
-
-### ``UnsendToAllChannels(): void``
+### ``unsendToAllChannels(): void``
 Disconnects this channel from all channels currently stored in ``sends``.
 
 #### Arguments
@@ -136,11 +155,84 @@ No arguments
 #### Returns
 - ``void``
 
-### ``AttachAudioClip(audioClip: AudioClip): void``
-Attaches an [``AudioClip``](./AudioClip.md) to this channel via its internal [``AudioClipPlayer``](./AudioClipPlayer.md).
+### ``hasAudioClipPlayer(): boolean``
+Returns whether this channel has a constructed [``AudioClipPlayer``](./AudioClipPlayer.md).
+
+#### Arguments
+No arguments
+
+#### Returns
+- ``boolean`` - ``true`` if ``audioClipPlayer`` is defined, otherwise ``false``.
+
+### ``attachAudioClip(audioClip: AudioClip): Channel``
+Attaches an [``AudioClip``](./AudioClip.md) to this channel via its internal [``AudioClipPlayer``](./AudioClipPlayer.md). Throws if this channel has no ``audioClipPlayer``.
 
 #### Arguments
 - ``audioClip``: [``AudioClip``](./AudioClip.md) - The audio clip to attach.
+
+#### Returns
+- ``Channel`` - The same channel. Can be used to stack methods.
+
+### ``volume(volume?: number): number``
+Gets or sets this channel's gain. When ``volume`` is provided (and truthy), it is written to ``gainNode.gain`` at the current context time. Throws if the channel has no ``context`` or ``gainNode``.
+
+#### Arguments
+- ``volume?``: ``number`` - New gain value to apply. Omit to just read the current value.
+
+#### Returns
+- ``number`` - The value that was set, or the current ``gainNode.gain.value`` when no argument is given.
+
+### ``pan(pan?: number): number``
+Gets or sets this channel's stereo pan. When ``pan`` is provided (and truthy), it is written to ``stereoPannerNode.pan`` at the current context time. Throws if the channel has no ``context`` or ``stereoPannerNode``.
+
+#### Arguments
+- ``pan?``: ``number`` - New pan value to apply (between -1 and 1). Omit to just read the current value.
+
+#### Returns
+- ``number`` - The value that was set, or the current ``stereoPannerNode.pan.value`` when no argument is given.
+
+### ``getEffectsByLabel(label: string): Effector[]``
+Returns all attached effects whose ``label`` matches the given value.
+
+#### Arguments
+- ``label``: ``string`` - The label to match against.
+
+#### Returns
+- ``Effector[]``
+
+### ``getFirstEffectByLabel(label: string): Effector | null``
+Returns the first attached effect whose ``label`` matches the given value, or ``null`` if none match.
+
+#### Arguments
+- ``label``: ``string`` - The label to match against.
+
+#### Returns
+- ``Effector | null``
+
+### ``getEffectById(id: string): Effector[]``
+Returns all attached effects whose ``id`` matches the given value.
+
+#### Arguments
+- ``id``: ``string`` - The effect id to match against.
+
+#### Returns
+- ``Effector[]``
+
+### ``getFirstEffectById(id: string): Effector | null``
+Returns the first attached effect whose ``id`` matches the given value, or ``null`` if none match.
+
+#### Arguments
+- ``id``: ``string`` - The effect id to match against.
+
+#### Returns
+- ``Effector | null``
+
+### ``moveEffectToIndex(effect: Effector, index: number | ArrayPosition): void``
+Moves an already-attached effect to a new position in the ``effects`` chain and rebuilds the routing. Throws if the effect cannot be found, or if more than one effect shares the same id.
+
+#### Arguments
+- ``effect``: [``Effector``](./Effector.md) - The effect to move. Must already be attached to this channel.
+- ``index``: ``number | ArrayPosition`` - Either an absolute array index, or one of the named positions ``"start"``, ``"end"``, ``"one-after-start"``, ``"one-before-end"``. Out-of-range numeric indexes are clamped.
 
 #### Returns
 - ``void``
@@ -173,17 +265,17 @@ import { DspPipeline, Channel } from "@fluex/fluexgl-dsp";
         }
     });
 
-    await pipeline.InitializeDpsPipeline();
+    await pipeline.initializeDpsPipeline();
 
-    const audioDevice = await pipeline.ResolveDefaultAudioOutputDevice();
+    const audioDevice = await pipeline.resolveDefaultAudioOutputDevice();
 
     if (!audioDevice) return;
 
-    const context = audioDevice.GetContext();
-    const master = audioDevice.GetMasterChannel();
+    const context = audioDevice.getContext();
+    const master = audioDevice.getMasterChannel();
 
     const channel = new Channel(context);
-    channel.Send(master);
+    channel.send(master);
 })()
 ```
 
@@ -201,17 +293,17 @@ import { DspPipeline } from "@fluex/fluexgl-dsp";
         }
     });
 
-    await pipeline.InitializeDpsPipeline();
+    await pipeline.initializeDpsPipeline();
 
-    const audioDevice = await pipeline.ResolveDefaultAudioOutputDevice();
+    const audioDevice = await pipeline.resolveDefaultAudioOutputDevice();
 
     if (!audioDevice) return;
 
-    const context = audioDevice.GetContext();
-    const master = audioDevice.GetMasterChannel();
+    const context = audioDevice.getContext();
+    const master = audioDevice.getMasterChannel();
 
-    const channel = audioDevice.CreateChannel();
-    channel.Send(master);
+    const channel = audioDevice.createChannel();
+    channel.send(master);
 })()
 ```
 
@@ -229,20 +321,20 @@ import { DspPipeline } from "@fluex/fluexgl-dsp";
         }
     });
 
-    await pipeline.InitializeDpsPipeline();
+    await pipeline.initializeDpsPipeline();
 
-    const audioDevice = await pipeline.ResolveDefaultAudioOutputDevice();
+    const audioDevice = await pipeline.resolveDefaultAudioOutputDevice();
 
     if (!audioDevice) return;
 
-    const master = audioDevice.GetMasterChannel();
+    const master = audioDevice.getMasterChannel();
 
-    const channel1 = audioDevice.CreateChannel();
-    const channel2 = audioDevice.CreateChannel();
-    const channel3 = audioDevice.CreateChannel();
+    const channel1 = audioDevice.createChannel();
+    const channel2 = audioDevice.createChannel();
+    const channel3 = audioDevice.createChannel();
 
-    channel1.Send(channel2);
-    channel2.Send(channel3);
-    channel3.Send(master);
+    channel1.send(channel2);
+    channel2.send(channel3);
+    channel3.send(master);
 })()
 ```

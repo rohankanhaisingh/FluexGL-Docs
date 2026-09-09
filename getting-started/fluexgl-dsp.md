@@ -73,7 +73,7 @@ Correct example usage:
 ```
 
 #### 3.3 Initialize the pipeline
-After providing the required data, initialize the pipeline using ``InitializeDpsPipeline()`` or the shorthand ``Init()`` method.
+After providing the required data, initialize the pipeline using ``initializeDpsPipeline()`` or the shorthand ``init()`` method.
 
 ```ts
 (async function() {
@@ -82,7 +82,7 @@ After providing the required data, initialize the pipeline using ``InitializeDps
         pathToWorklet: "/data/fluexgl-dsp/fluexgl-dsp-processor.worklet"
     });
 
-    await pipeline.InitializeDpsPipeline();
+    await pipeline.initializeDpsPipeline();
 })();
 ```
 
@@ -113,7 +113,7 @@ When deploying your application, you can disable logs so the console stays clean
         }
     });
 
-    await pipeline.InitializeDpsPipeline();
+    await pipeline.initializeDpsPipeline();
 })();
 ```
 
@@ -131,7 +131,7 @@ Enable the option:
         }
     });
 
-    await pipeline.InitializeDpsPipeline();
+    await pipeline.initializeDpsPipeline();
 })();
 ```
 
@@ -140,5 +140,5 @@ In your ``AudioClip``, manually set the maximum number of buffer source nodes:
 import { AudioClip } from "@fluex/fluexgl-dsp";
 
 const myAudioClip = new AudioClip(sourceData);
-myAudioClip.SetMaxAudioBufferSourceNodes(200);
+myAudioClip.setMaxAudioBufferSourceNodes(200);
 ```
