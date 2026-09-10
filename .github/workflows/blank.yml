@@ -17,6 +17,7 @@ jobs:
           key: ${{ secrets.SSH_KEY }}
           script: |
             set -e
+            git config --global --add safe.directory "${{ secrets.DEPLOY_PATH }}"
             cd "${{ secrets.DEPLOY_PATH }}"
             git fetch origin
             git checkout master
