@@ -14,7 +14,9 @@ const softClip = new SoftClip({
     gain: 0.8
 });
 
-await softClip.initializeOnAttachment(audioContext);
+...
+
+channel.addEffect(softClip);
 ```
 
 - - -

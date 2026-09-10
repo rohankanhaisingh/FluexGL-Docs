@@ -16,7 +16,9 @@ const reverb = new Reverb({
     stereoSpreadMs: 10
 });
 
-await reverb.initializeOnAttachment(audioContext);
+...
+
+channel.addEffect(reverb);
 ```
 
 - - -

@@ -22,7 +22,9 @@ const notch = new NotchFilter({
     q: 10
 });
 
-await notch.initializeOnAttachment(audioContext);
+...
+
+channel.addEffect(notch);
 ```
 
 - - -

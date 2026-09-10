@@ -14,7 +14,9 @@ const hardClip = new HardClip({
     gain: 0.8
 });
 
-await hardClip.initializeOnAttachment(audioContext);
+...
+
+channel.addEffect(hardClip);
 ```
 
 - - -

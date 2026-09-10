@@ -17,7 +17,9 @@ const lowPass = new LowPassFilter({
     q: 0.7
 });
 
-await lowPass.initializeOnAttachment(audioContext);
+...
+
+channel.addEffect(lowPass);
 ```
 
 - - -

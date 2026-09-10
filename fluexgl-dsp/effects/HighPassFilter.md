@@ -17,7 +17,9 @@ const highPass = new HighPassFilter({
     q: 0.7
 });
 
-await highPass.initializeOnAttachment(audioContext);
+...
+
+channel.addEffect(highPass);
 ```
 
 - - -

@@ -20,7 +20,9 @@ const chorus = new Chorus({
     feedback: 0.2
 });
 
-await chorus.initializeOnAttachment(audioContext);
+...
+
+channel.addEffect(chorus);
 ```
 
 - - -

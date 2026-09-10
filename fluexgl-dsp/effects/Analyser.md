@@ -16,7 +16,7 @@ const analyser = new Analyser({
     maxDecibels: -10
 });
 
-await analyser.initializeOnAttachment(audioContext);
+channel.addEffect(analyser);
 
 const waveform = analyser.getWaveformFloatData();
 const spectrum = analyser.getFrequencyByteData();
