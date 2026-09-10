@@ -1,4 +1,4 @@
-# CreateAudioWorkletNode
+# createAudioWorkletNode
 
 Creates and initializes an AudioWorkletNode bound to the FluexGL DSP WebAssembly module.
 

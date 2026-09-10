@@ -1,4 +1,4 @@
-# InitializeDspPipeline
+# initializeDspPipeline
 
 Initializes the FluexGL DSP pipeline by preparing audio permissions, loading WebAssembly modules, and constructing the AudioWorklet processor.
 

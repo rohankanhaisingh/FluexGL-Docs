@@ -1,4 +1,4 @@
-# ResolveDefaultAudioInputDevice
+# resolveDefaultAudioInputDevice
 
 Resolves and initializes the system's default audio input device for DSP processing.
 

@@ -1,4 +1,4 @@
-# LoadAudioSource
+# loadAudioSource
 
 An essential helper function within FluexGL DSP for loading audio files from a specified path.
 

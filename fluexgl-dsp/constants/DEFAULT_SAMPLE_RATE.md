@@ -1,4 +1,4 @@
-# DefaultSampleRate
+# DEFAULT_SAMPLE_RATE
 
 The fallback sample rate (in Hz) used before an effect has been attached to a real ``AudioContext``.
 

@@ -1,4 +1,4 @@
-# ConstructProcessorWorklet
+# constructProcessorWorklet
 
 Constructs a Blob URL for an AudioWorklet processor from provided JavaScript source code.
 

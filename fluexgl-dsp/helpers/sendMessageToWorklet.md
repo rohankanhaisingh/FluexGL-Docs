@@ -1,4 +1,4 @@
-# SendMessageToWorklet
+# sendMessageToWorklet
 
 Sends a typed command message to an AudioWorklet node with basic validation and safety checks.
 

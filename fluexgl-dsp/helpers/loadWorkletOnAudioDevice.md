@@ -1,4 +1,4 @@
-# LoadWorkletOnAudioDevice
+# loadWorkletOnAudioDevice
 
 Loads and registers AudioWorklet processor modules on a specific audio device.
 

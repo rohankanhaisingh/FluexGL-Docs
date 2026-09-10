@@ -1,4 +1,4 @@
-# LoadAudioSourceFromBlob
+# loadAudioSourceFromBlob
 
 A lightweight helper function within FluexGL DSP for decoding audio data directly from a Blob.
 

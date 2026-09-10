@@ -1,4 +1,4 @@
-# ResolveAudioInputDevices
+# resolveAudioInputDevices
 
 Resolves and returns a list of available audio input devices on the system.
 

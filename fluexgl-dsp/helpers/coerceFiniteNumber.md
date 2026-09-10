@@ -1,4 +1,4 @@
-# CoerceFiniteNumber
+# coerceFiniteNumber
 
 Coerces an unknown value into a finite number, falling back to a default when validation fails.
 

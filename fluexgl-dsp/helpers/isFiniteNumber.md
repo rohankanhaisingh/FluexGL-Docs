@@ -1,4 +1,4 @@
-# IsFiniteNumber
+# isFiniteNumber
 
 Utility type guard for validating finite numeric values.
 

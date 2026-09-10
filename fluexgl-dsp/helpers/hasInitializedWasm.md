@@ -1,4 +1,4 @@
-# HasInitializedWasm
+# hasInitializedWasm
 
 A mutable flag indicating whether the FluexGL DSP WebAssembly module has been compiled.
 
