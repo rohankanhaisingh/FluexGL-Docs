@@ -32,7 +32,7 @@ new AudioClip(data: AudioSourceData): AudioClip;
 ```
 
 ### Arguments
-- ``data``: [``AudioSourceData``](../interfaces/AudioSourceData.md) - A typed object created when calling [``loadAudioSource()``](../helpers/LoadAudioSource.md) or [``loadAudioSourceFromBlob()``](../helpers/LoadAudioSourceFromBlob.md).
+- ``data``: [``AudioSourceData``](../interfaces/AudioSourceData.md) - A typed object created when calling [``loadAudioSource()``](../helpers/loadAudioSource.md) or [``loadAudioSourceFromBlob()``](../helpers/loadAudioSourceFromBlob.md).
 
 - - -
 

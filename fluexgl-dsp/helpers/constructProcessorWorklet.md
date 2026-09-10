@@ -6,7 +6,7 @@ Constructs a Blob URL for an AudioWorklet processor from provided JavaScript sou
 function constructProcessorWorklet(code: string): string;
 ```
 
-> **Note:** this function is defined and exported from ``utilities/helpers.ts``, but it is **not** re-exported from the package's top-level ``index.ts``. It is not currently reachable as ``import { constructProcessorWorklet } from "@fluex/fluexgl-dsp"`` — it is used internally by [``DspPipeline``](../classes/DspPipeline.md) and by the module-level [``initializeDspPipeline()``](./InitializeDspPipeline.md) helper. Documented here for completeness.
+> **Note:** this function is defined and exported from ``utilities/helpers.ts``, but it is **not** re-exported from the package's top-level ``index.ts``. It is not currently reachable as ``import { constructProcessorWorklet } from "@fluex/fluexgl-dsp"`` — it is used internally by [``DspPipeline``](../classes/DspPipeline.md) and by the module-level [``initializeDspPipeline()``](./initializeDspPipeline.md) helper. Documented here for completeness.
 
 - - -
 

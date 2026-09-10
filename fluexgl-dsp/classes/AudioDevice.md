@@ -1,6 +1,6 @@
 # Class ``AudioDevice``
 
-Represents an audio output device wrapper that owns an ``AudioContext`` and helps create and manage [``Channel``](./Channel.md) and [``Master``](./Master.md) routing objects. Usually constructed when calling [``resolveDefaultAudioOutputDevice()``](../helpers/ResolveDefaultAudioOutputDevice.md).
+Represents an audio output device wrapper that owns an ``AudioContext`` and helps create and manage [``Channel``](./Channel.md) and [``Master``](./Master.md) routing objects. Usually constructed when calling [``resolveDefaultAudioOutputDevice()``](../helpers/resolveDefaultAudioOutputDevice.md).
 
 ## Example
 

@@ -37,7 +37,7 @@ This utility is the primary factory for creating DSP-enabled AudioWorklet nodes 
 ## Error and warnings
 
 ### Thrown ``Error``
-If the DSP WebAssembly module has not been compiled yet (i.e. [``initializeDspPipeline()``](./InitializeDspPipeline.md) / [``DspPipeline.initializeDpsPipeline()``](../classes/DspPipeline.md) has not completed successfully), this function throws a plain JavaScript ``Error`` with the message:
+If the DSP WebAssembly module has not been compiled yet (i.e. [``initializeDspPipeline()``](./initializeDspPipeline.md) / [``DspPipeline.initializeDpsPipeline()``](../classes/DspPipeline.md) has not completed successfully), this function throws a plain JavaScript ``Error`` with the message:
 
 > "Coult not create audio worklet node. WebAssembly has not been compiled yet."
 
