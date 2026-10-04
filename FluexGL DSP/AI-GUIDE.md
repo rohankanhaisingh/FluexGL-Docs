@@ -59,7 +59,7 @@ clip.play();
 ### Core
 | API | Notes |
 |---|---|
-| ``new DspPipeline({ pathToWasm, pathToWorklet, options? })`` | ``options`` is a partial ``DspOptions``, e.g. ``{ overrideMaxAudioBufferNodes: true }``. Top-level keys replace the defaults, so pass a complete ``debugger`` object. |
+| ``new DspPipeline({ pathToWasm, pathToWorklet, options? })`` | ``options`` is a partial ``DspOptions``, e.g. ``{ overrideMaxAudioBufferNodes: true, debugger: { showInfo: false } }``. Nested objects are merged with the defaults. |
 | ``pipeline.initializeDpsPipeline(): Promise<boolean>`` | Alias ``init()``. Requests microphone permission to list devices. |
 | ``pipeline.resolveDefaultAudioOutputDevice(): Promise<AudioDevice \| null>`` | Loads the worklet on the device's ``AudioContext``. Worklet effects only work on this context. |
 | ``audioDevice.context`` | The ``AudioContext``. |
@@ -69,7 +69,7 @@ clip.play();
 | ``channel.send(target: Channel \| Master)`` / ``unsend(target)`` | Prevents feedback loops. |
 | ``channel.addEffect(effect): Channel`` / ``removeEffect(effect)`` / ``moveEffectToIndex(effect, index \| "start" \| "end")`` | |
 | ``master.attachEffect(effect)`` / ``detachEffect(effect)`` | Processed in attach order; no reordering. |
-| ``channel.volume(v?)`` / ``channel.pan(v?)`` | See pitfalls: ``0`` is ignored. |
+| ``channel.volume(v?)`` / ``channel.pan(v?)`` | Getter and setter in one. ``0`` is a valid value. |
 | ``loadAudioSource(path): Promise<AudioSourceData \| null>`` | Decodes the file. |
 | ``new AudioClip(data)`` | Many clips can share one ``AudioSourceData``. |
 | ``clip.send(channelOrMaster)`` / ``unsend(...)`` | A clip plays into every target it was sent to. |
@@ -83,11 +83,18 @@ All effects extend ``Effector`` and are added with ``channel.addEffect()`` or ``
 
 | Effect | Kind | Needs WASM |
 |---|---|---|
-| ``LowPassFilter``, ``HighPassFilter``, ``Chorus``, ``Reverb``, ``SoftClip``, ``HardClip`` | AudioWorklet | Yes |
+| ``LowPassFilter``, ``HighPassFilter``, ``NotchFilter``, ``Chorus``, ``Reverb``, ``SoftClip``, ``HardClip`` | AudioWorklet | Yes |
+| ``Equalizer`` (up to 8 bands: ``peaking``, ``lowshelf``, ``highshelf``, ``lowpass``, ``highpass``, ``notch``, ``bandpass``) | AudioWorklet | Yes |
+| ``MonoDelay``, ``StereoDelay``, ``PingPongDelay``, ``AdvancedDelay`` (cross feedback, low/high cut, modulation, drive) | AudioWorklet, one shared delay engine | Yes |
+| ``Saturation`` (``"soft"``, ``"tube"``, ``"tape"``, anti-aliased) | AudioWorklet | Yes |
 | ``Compressor`` (``threshold``, ``knee``, ``ratio``, ``attack``, ``release``, ``makeupGain``) | Native ``DynamicsCompressorNode`` | No |
-| ``Limiter`` (``ceiling``, ``release``, ``inputGain``) | Native ``DynamicsCompressorNode`` | No |
+| ``MultibandCompressor`` (3 bands, Linkwitz-Riley crossovers) | Native | No |
+| ``Limiter`` (``ceiling``, ``release``, ``inputGain``) | Native compressor + soft clipper | No |
+| ``StereoPanner`` (``pan``, ``width``) | Native | No |
 | ``Analyser`` | Native ``AnalyserNode`` | No |
-| ``Distortion``, ``Equalizer``, ``Saturation``, ``StereoPanner``, ``MultibandCompressor``, delays | Placeholders, not functional yet | - |
+| ``Distortion`` | Placeholder, not functional yet | - |
+
+The new WASM effects (``Equalizer``, the delays, ``Saturation``) require a worklet/WASM build from FluexGL-DSP-WebAssembly 0.4.9 or newer.
 
 Custom effects: extend ``Effector``, create nodes synchronously in ``initializeOnAttachment(context)``, and override the ``inputNode``/``outputNode`` getters (see [Effector](./classes/Effector.md)).
 
@@ -102,7 +109,8 @@ Custom effects: extend ``Effector``, create nodes synchronously in ``initializeO
 | ``renderer.listener`` | ``SpatialAudioListener`` (2D) or ``SpatialAudioListener3D`` (3D). |
 | ``renderer.master`` / ``renderer.limiter`` / ``renderer.reverbChannel`` | Own master, built-in limiter (``limiter: false`` disables), reverb bus. |
 | ``renderer.setReverbEffect(effect \| null)`` | Default reverb is attached automatically once WASM is ready. |
-| ``renderer.clustering`` / ``renderer.options`` | Mutable at runtime. |
+| ``renderer.clustering`` / ``renderer.options`` | Mutable at runtime. ``options.maxVoices`` caps the voices (64 in 2D, 32 in 3D). |
+| ``renderer.getStats()`` | ``{ sources, audible, virtual, voices, clusters, pooledVoices }``. |
 | ``renderer.getClusters()`` | Debug info per voice. |
 | ``(renderer as SpatialAudioRenderer3D).setPanningModel("HRTF" \| "equalpower" \| "stereo")`` | 3D only. |
 | ``source.attachAudioClip(clip)`` | Then ``clip.play()``. Do NOT also ``clip.send()`` it to a channel. |
@@ -129,17 +137,17 @@ Custom effects: extend ``Effector``, create nodes synchronously in ``initializeO
 
 1. **No sound at all?** The ``AudioContext`` must be resumed after a user gesture: ``await audioDevice.context.resume()``.
 2. **Worklet effects throw "WebAssembly has not been compiled yet"**: add them only after ``await pipeline.initializeDpsPipeline()``, on the device from ``resolveDefaultAudioOutputDevice()``.
-3. **``new LowPassFilter()`` and ``new Chorus()`` throw**: they require an options object. Use ``new LowPassFilter({})``.
-4. **``channel.volume(0)`` and ``channel.pan(0)`` do nothing**: a value of ``0`` is ignored. Use ``channel.gainNode.gain.value = 0`` or ``channel.stereoPannerNode.pan.value = 0``.
-5. **A clip plays twice / in the wrong place**: a clip plays into every target it was sent or attached to. Use one ``AudioClip`` per destination (they can share ``AudioSourceData``).
-6. **``clip.play()`` returns ``null`` for rapid-fire sounds**: enable ``overrideMaxAudioBufferNodes`` on the pipeline and call ``clip.setMaxAudioBufferSourceNodes(n)``.
-7. **Spatial sounds do not move**: ``renderer.update()`` must be called every frame (or ``renderer.start()`` once).
-8. **2D sounds are panned the wrong way**: check ``yAxis`` and the rotation convention (``0`` = facing up on screen, clockwise).
-9. **Side-scroller: sounds below the player are muffled**: set ``rearLowpassFactor: 1``.
-10. **Effects attached to ``renderer.master`` come after the limiter**: create the renderer with ``limiter: false`` and attach your own ``Limiter`` last if you need effects before it.
-11. **``renderer.listener`` is not ``AudioContext.listener``**: the renderers never use the Web Audio listener; do not set it.
-12. **Disabling logs hides errors too**: ``options.debugger`` replaces the whole default object. Always pass all four fields: ``{ showInfo, showWarnings, showErrors, breakOnError }``.
-13. **``NotchFilter`` cannot be imported**: the class exists in the source, but is not exported from the package root yet.
+3. **A clip plays twice / in the wrong place**: a clip plays into every target it was sent or attached to. Use one ``AudioClip`` per destination (they can share ``AudioSourceData``).
+4. **``clip.play()`` returns ``null`` for rapid-fire sounds**: enable ``overrideMaxAudioBufferNodes`` on the pipeline and call ``clip.setMaxAudioBufferSourceNodes(n)``.
+5. **Spatial sounds do not move**: ``renderer.update()`` must be called every frame (or ``renderer.start()`` once).
+6. **2D sounds are panned the wrong way**: check ``yAxis`` and the rotation convention (``0`` = facing up on screen, clockwise).
+7. **Side-scroller: sounds below the player are muffled**: set ``rearLowpassFactor: 1``.
+8. **Effects attached to ``renderer.master`` come after the limiter**: create the renderer with ``limiter: false`` and attach your own ``Limiter`` last if you need effects before it.
+9. **``renderer.listener`` is not ``AudioContext.listener``**: the renderers never use the Web Audio listener; do not set it.
+10. **``BiquadFilterNode`` Q is in dB for lowpass/highpass**: when building native filters yourself, a Butterworth response needs ``Q: -3.0103`` (dB), not ``0.7071``. Allpass, peaking and notch use a linear Q.
+11. **Native compressors add makeup gain**: every ``DynamicsCompressorNode`` (and so ``Compressor``) applies an automatic makeup gain from its curve, several dB at typical settings. ``Limiter`` and ``MultibandCompressor`` undo it; ``Compressor`` keeps the native behavior.
+12. **Some spatial sources are silent when many sounds play**: by design. Above ``options.maxVoices`` the quietest sources become virtual (``source.isVirtual``). Raise ``maxVoices`` if your target devices can handle it; check ``renderer.getStats()``.
+13. **Do not call ``setTargetAtTime`` every frame on many params**: every automation call is a message to the audio thread. The spatial renderer only sends changes above an inaudible threshold; do the same in your own code.
 
 ---
 

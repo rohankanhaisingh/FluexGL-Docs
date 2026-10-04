@@ -77,5 +77,5 @@ If the limiter is reducing by more than a few dB most of the time, the mix is to
 ## Notes
 - A renderer's ``master`` is a normal [``Master``](../classes/Master.md). Its ``gainNode`` sits after the limiter, so lowering it never causes clipping.
 - Effects attached to ``world.master`` after construction come after the built-in limiter. If you need effects before the limiter, create the renderer with ``limiter: false``, attach your effects, then attach your own ``Limiter`` last.
-- ``channel.volume(0)`` and ``channel.pan(0)`` currently have no effect (a value of ``0`` is ignored). To mute a channel, set ``channel.gainNode.gain.value = 0`` directly.
+- To mute a channel, use ``channel.volume(0)``.
 - Two renderers can run side by side, for example one for the world and one for a separate minigame. They can share one ``AudioDevice``.

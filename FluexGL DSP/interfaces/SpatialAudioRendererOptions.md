@@ -13,6 +13,7 @@ interface SpatialAudioRendererOptions extends SpatialAttenuationOptions {
     reverbMinSend: number;
     reverbMaxSend: number;
     silenceThreshold: number;
+    maxVoices: number;
     clustering: Partial<SpatialClusteringOptions>;
     limiter: boolean | Partial<LimiterOptions>;
 }
@@ -36,5 +37,6 @@ The renderer maps the normalized distance (``0`` at ``refDistance``, ``1`` at ``
 - `reverbMinSend`: `number` - Reverb send at ``refDistance``. Default ``0.05``.
 - `reverbMaxSend`: `number` - Reverb send at ``maxDistance``. Default ``0.6``.
 - `silenceThreshold`: `number` - Gain below which a source is inaudible and gets no voice. It becomes audible again at twice this value. Default ``0.001``.
+- `maxVoices`: `number` - Maximum number of voices (a cluster counts as one). Above it, the quietest sources become virtual. Default ``64`` (2D) or ``32`` (3D). See [Voice budget](../classes/SpatialAudioRenderer.md#voice-budget).
 - `clustering`: [`Partial<SpatialClusteringOptions>`](./SpatialClusteringOptions.md) - Clustering configuration.
 - `limiter`: `boolean` | [`Partial<LimiterOptions>`](./LimiterOptions.md) - Safety [``Limiter``](../effects/Limiter.md) on the renderer's master channel. ``false`` disables it, an object configures it. Default ``true``.

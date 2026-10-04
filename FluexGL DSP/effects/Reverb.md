@@ -51,7 +51,7 @@ Simulated room size. Defaults to ``0.3``.
 High-frequency damping amount. Defaults to ``0.5``.
 
 ### ``mix: number``
-Dry/wet mix. Defaults to ``0.3``.
+Dry/wet balance, between ``0`` (dry only) and ``1`` (wet only). Defaults to ``0.3``. The processor works with separate dry and wet levels; ``mix`` is sent as ``dry = 1 - mix`` and ``wet = mix``.
 
 ### ``stereoSpreadMs: number``
 Stereo spread, in milliseconds. Defaults to ``0``.
@@ -118,7 +118,9 @@ Updates ``damping`` (floored at ``0``) and forwards the change to the AudioWorkl
 
 ### ``setMix(mix: number): boolean``
 
-Updates ``mix`` (floored at ``0``) and forwards the change to the AudioWorklet processor.
+Updates ``mix`` (clamped between ``0`` and ``1``) and sends ``dry = 1 - mix`` and ``wet = mix`` to the AudioWorklet processor.
+
+> Before version 0.4.9, the command ids of this class did not match the ``ReverbProcessor``: ``setMix`` changed the dry level of the processor and ``setStereoSpreadMs`` its wet level, and the initial ``mix`` was ignored (the processor used dry 0.7 / wet 0.3). This has been fixed.
 
 #### Arguments
 

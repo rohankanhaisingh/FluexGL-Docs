@@ -5,6 +5,7 @@ Shows what the spatial renderer is doing: where every source is as heard by the 
 ## What it shows
 - [``source.state``](../interfaces/SpatialSourceState.md): distance, angle and attenuation of a source.
 - [``renderer.getClusters()``](../interfaces/SpatialClusterInfo.md): which sources share a voice.
+- [``renderer.getStats()``](../interfaces/SpatialRendererStats.md): voices, clusters and virtual sources at a glance.
 - [``source.voice``](../classes/SpatialAudioVoice.md): the live filter, panning and reverb values.
 - Tuning [``SpatialClusteringOptions``](../interfaces/SpatialClusteringOptions.md) at runtime.
 
@@ -73,6 +74,18 @@ function drawAudioDebug(ctx: CanvasRenderingContext2D) {
 }
 ```
 
+## Voice budget
+
+```ts
+const stats = renderer.getStats();
+console.log(`voices ${stats.voices}/${renderer.options.maxVoices}, virtual ${stats.virtual}`);
+
+// A source that is audible but not rendered, because louder sources use the voice budget:
+if (source.isVirtual) console.log(source.label, "is virtual");
+```
+
+If many sources are virtual and you hear sounds missing, raise ``renderer.options.maxVoices`` (if the target devices can handle it), or cluster more aggressively so far away sources share voices.
+
 ## Tuning
 
 All clustering options can be changed at runtime:
@@ -95,7 +108,8 @@ renderer.clustering.maxMembers = 8;
 | Sources switch between cluster and own voice too often | Increase the gap between ``splitDistance`` and ``mergeDistance`` |
 | A cluster sounds like it comes from the wrong direction | Lower ``maxAngle`` |
 | Near and far sources end up in one cluster | Lower ``maxDistanceRatio`` |
-| Too many voices (CPU usage, especially with HRTF) | Raise ``maxAngle``, lower ``mergeDistance`` |
+| Too many voices (CPU usage, especially with HRTF) | Lower ``maxVoices``, raise ``maxAngle``, lower ``mergeDistance`` |
+| Audio glitches with many sources | Lower ``maxVoices``; in 3D consider ``panningModel: "equalpower"`` |
 | Distant sounds are too dull | Raise ``lowpassMinFrequency`` in ``renderer.options`` |
 | Distant sounds are too wet | Lower ``reverbMaxSend`` in ``renderer.options`` |
 

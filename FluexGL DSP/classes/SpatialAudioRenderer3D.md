@@ -64,6 +64,7 @@ The 3D renderer uses defaults that suit world units in meters:
 | ``maxDistance`` | ``100`` |
 | ``clustering.splitDistance`` | ``15`` |
 | ``clustering.mergeDistance`` | ``20`` |
+| ``maxVoices`` | ``32`` |
 
 All other defaults are listed in [``SpatialAudioRendererOptions``](../interfaces/SpatialAudioRendererOptions.md).
 

@@ -5,6 +5,7 @@ Position of a spatial source relative to the listener.
 ```ts
 interface SpatialSourceState {
     local: Vector3;
+    direction: Vector3;
     distance: number;
     azimuth: number;
     elevation: number;
@@ -18,6 +19,7 @@ Calculated by ``renderer.computeSourceState()`` and stored in ``source.state`` o
 
 ## Properties
 - `local`: [`Vector3`](./Vector3.md) - Position of the source in listener space: ``x`` = right, ``y`` = up, ``z`` = forward. ``y`` is always ``0`` in 2D.
+- `direction`: [`Vector3`](./Vector3.md) - Unit vector from the listener towards the source, in listener space. ``(0, 0, 1)`` when the source is exactly on the listener.
 - `distance`: `number` - Distance to the listener.
 - `azimuth`: `number` - Horizontal angle relative to the facing direction of the listener, in radians. Positive is to the right, ``Math.PI`` (or ``-Math.PI``) is directly behind.
 - `elevation`: `number` - Vertical angle relative to the listener, in radians. Positive is up. Always ``0`` in 2D.

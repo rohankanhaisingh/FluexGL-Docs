@@ -69,7 +69,7 @@ The minimum allowed pitch, in semitones, accepted by ``setPitch()``. Defaults to
 The maximum allowed pitch, in semitones, accepted by ``setPitch()``. Defaults to ``24``.
 
 ### ``progressUpdateSpeed: number``
-The interval in milliseconds used to track the audio clip's time progress. Default value is ``20``.
+The interval in milliseconds used to track the audio clip's time progress. Default value is ``20``. The progress timer only runs while the clip is playing and at least one ``"progress"`` listener is registered, and stops when the last playback has ended.
 
 ### ``gainNode: GainNode | null``
 Per-clip gain node used to control volume.

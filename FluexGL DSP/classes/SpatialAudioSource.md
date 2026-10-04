@@ -90,6 +90,9 @@ Result of the last renderer ``update()``. ``null`` when the source has not been 
 ### ``audible: boolean``
 Whether the source is currently loud enough to be rendered. Managed by the renderer.
 
+### ``renderedGain: number``
+The gain (volume x attenuation) last sent to the audio thread. Managed by the renderer; also used to rank sources for the voice budget.
+
 - - -
 
 ## Methods
@@ -183,6 +186,9 @@ No arguments
 - - -
 
 ## Getters and setters
+
+### ``get isVirtual(): boolean``
+Whether the source is audible, but not rendered because the voice budget of the renderer (``maxVoices``) is used by louder sources. See [Voice budget](./SpatialAudioRenderer.md#voice-budget).
 
 ### ``get isInitialized(): boolean``
 Whether the source has been added to a renderer and has its audio nodes.

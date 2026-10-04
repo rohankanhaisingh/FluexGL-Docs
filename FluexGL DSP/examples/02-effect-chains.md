@@ -57,6 +57,5 @@ voice.removeEffect(lowpass);
 ## Notes
 - AudioWorklet effects (most effects) can only be added after ``await pipeline.initializeDpsPipeline()`` and on the ``AudioDevice`` returned by ``resolveDefaultAudioOutputDevice()``, because the worklet is loaded on that device's ``AudioContext``. Check [``hasInitializedWasm``](../helpers/hasInitializedWasm.md) if unsure.
 - ``Compressor`` and ``Limiter`` use the native ``DynamicsCompressorNode`` and work everywhere.
-- ``LowPassFilter`` and ``Chorus`` require an options object: use ``new LowPassFilter({})``, not ``new LowPassFilter()``.
 - Setters return ``false`` when the effect is not attached yet. Native effects store the value and apply it on attachment.
 - To write your own effect from native Web Audio nodes, see the example at the bottom of [``Effector``](../classes/Effector.md).

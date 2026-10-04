@@ -8,8 +8,7 @@ Internally this effector runs its filtering inside the ``NotchFilterProcessor`` 
 
 Extends [``Effector``](../classes/Effector.md).
 
-> **Not currently part of the public package API.** ``NotchFilter`` is a ``default`` export of its source file and is **not** re-exported from ``effects/exports.ts`` or from the package's top-level ``index.ts``. It cannot currently be imported as ``import { NotchFilter } from "@fluex/fluexgl-dsp"``. It is documented here for completeness since the class already exists in source, but treat it as unreleased/internal until it is added to the package's exports.
-> <!-- TODO: verify -- confirm with the maintainer whether NotchFilter is intentionally withheld from the public exports or simply missing from effects/exports.ts. -->
+Exported from the package root since version 0.4.9: ``import { NotchFilter } from "@fluex/fluexgl-dsp"``. ``NotchFilterOptions`` and ``NotchFilterMessageCommandId`` are exported as well.
 
 ## Example
 

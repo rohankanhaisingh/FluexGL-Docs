@@ -96,7 +96,7 @@ Great! You are now ready to use FluexGL DSP.
 The ``DspPipeline`` class has additional configuration options. For example, you can control logging or allow FluexGL DSP to override the maximum audio buffer nodes.
 
 ### Disabling console logs
-When deploying your application, you can disable logs so the console stays clean for users. Set this option manually:
+When deploying your application, you can disable logs so the console stays clean for users. Only the fields you pass change; the others keep their defaults (since version 0.4.9). Set this option manually:
 
 ```ts
 (async function() {

@@ -186,8 +186,17 @@ No arguments
 #### Returns
 - [``SpatialClusterInfo[]``](../interfaces/SpatialClusterInfo.md) - One entry per active voice.
 
+### ``getStats(): SpatialRendererStats``
+Returns counters that show how the renderer is doing: sources, audible sources, virtual sources, voices, clusters and pooled voices. Useful for debugging and for tuning ``maxVoices``.
+
+#### Arguments
+No arguments
+
+#### Returns
+- [``SpatialRendererStats``](../interfaces/SpatialRendererStats.md)
+
 ### ``dispose(): void``
-Stops the loop, removes and disposes all sources, disposes all voices and disconnects the reverb bus from the master channel.
+Stops the loop, removes and disposes all sources, disposes all voices (including pooled ones) and disconnects the reverb bus from the master channel.
 
 #### Arguments
 No arguments
@@ -199,18 +208,37 @@ No arguments
 
 ## Clustering
 
-When ``clustering.enabled`` is ``true``, every ``update()`` assigns voices in these steps:
+Every ``update()`` assigns voices in these steps (steps 1 to 4 only when ``clustering.enabled`` is ``true``):
 
 1. Members that no longer fit their cluster are removed. A member must stay further than ``splitDistance`` and within ``maxAngle x 1.25`` and ``maxDistanceRatio x 1.25`` of the cluster centre (the extra 25% prevents flapping).
-2. Loose sources further than ``mergeDistance`` join the best fitting existing cluster (smallest angle), if it has fewer than ``maxMembers`` members.
-3. Remaining loose sources that are within ``maxAngle`` and ``maxDistanceRatio`` of each other form new clusters.
+2. Loose sources further than ``mergeDistance`` join the best fitting existing cluster (smallest angle), if it has fewer than ``maxMembers`` members. Joining a cluster costs no voice, so virtual sources can join too.
+3. Remaining loose sources that are within ``maxAngle`` and ``maxDistanceRatio`` of each other form new clusters, as long as the voice budget allows (see below).
 4. Clusters with fewer than two members are dissolved.
-5. Every other audible source gets its own voice. Inaudible sources get no voice at all.
-6. Empty voices are disposed.
+5. Inaudible sources lose their voice.
+6. If more voices are in use than ``maxVoices`` (for example after a cluster split up), the quietest voices are released.
+7. The remaining audible sources get their own voice, loudest first, as long as the voice budget allows.
+8. Empty voices go to a pool for reuse.
+
+Cluster forming does not compare every pair of sources. Candidates are sorted by azimuth and only compared with neighbours within an azimuth window that provably contains every match; sources more than 60 degrees above or below the listener are compared with all others. This keeps ``update()`` fast with many sources (about 0.4 ms per frame for 1000 sources in 2D).
 
 Angles are measured in 3D between directions as seen from the listener, so clustering works the same in 2D and 3D. A cluster voice uses the loudness-weighted average of its members' parameters (the cutoff is averaged logarithmically). Moving a source between voices always uses a short crossfade (``crossfadeTime``).
 
 Because the gain stays per source, clustering only approximates the filter, panning and reverb of far away sources, which are the sources where that is hard to hear.
+
+- - -
+
+## Voice budget
+
+``options.maxVoices`` caps the number of voices (a cluster counts as one). The default is ``64`` for ``SpatialAudioRenderer2D`` and ``32`` for ``SpatialAudioRenderer3D``, because HRTF panners are relatively expensive.
+
+- When the budget is full, the quietest audible sources become **virtual** (``source.isVirtual``): they keep being tracked, but are not rendered.
+- A virtual source (or a new cluster) takes over a voice only when it is at least 1.5x louder than the quietest voice in use. This margin keeps sources from switching back and forth.
+- Loudness of a voice is the summed gain (volume x attenuation) of its sources.
+- Released voices go to a pool and are reused, so voices (and HRTF panners) are not constantly created and destroyed.
+
+## Performance
+
+Every ``AudioParam`` automation call (``setTargetAtTime``, ``setValueAtTime``) is a message to the audio thread. With many sources, sending every parameter every frame floods the audio thread and causes glitches. The renderer therefore only sends a value when it changed by more than an inaudible amount: 0.5% for gains and cutoffs, 0.002 for pan, reverb send and direction components. In a benchmark with 1000 moving sources this reduced the automation calls from about 1500 to about 220 per frame.
 
 - - -
 

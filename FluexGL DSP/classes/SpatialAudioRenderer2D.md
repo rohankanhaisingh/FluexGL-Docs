@@ -46,6 +46,7 @@ new SpatialAudioRenderer2D(target: AudioDevice | AudioContext, options?: Partial
 | ``maxDistance`` | ``1500`` |
 | ``clustering.splitDistance`` | ``300`` |
 | ``clustering.mergeDistance`` | ``400`` |
+| ``maxVoices`` | ``64`` |
 
 All other defaults are listed in [``SpatialAudioRendererOptions``](../interfaces/SpatialAudioRendererOptions.md).
 

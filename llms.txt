@@ -39,7 +39,9 @@ Start with the AI guide: it contains the mental model, the API quick reference, 
 - [SpatialAudioVoice](FluexGL%20DSP/classes/SpatialAudioVoice.md): internal
 
 ## Effects
-- [Compressor](FluexGL%20DSP/effects/Compressor.md), [Limiter](FluexGL%20DSP/effects/Limiter.md): native, no WASM needed
+- [Compressor](FluexGL%20DSP/effects/Compressor.md), [Limiter](FluexGL%20DSP/effects/Limiter.md), [MultibandCompressor](FluexGL%20DSP/effects/MultibandCompressor.md), [StereoPanner](FluexGL%20DSP/effects/StereoPanner.md): native, no WASM needed
+- [Equalizer](FluexGL%20DSP/effects/Equalizer.md), [Saturation](FluexGL%20DSP/effects/Saturation.md): AudioWorklet/WASM
+- [MonoDelay](FluexGL%20DSP/effects/MonoDelay.md), [StereoDelay](FluexGL%20DSP/effects/StereoDelay.md), [PingPongDelay](FluexGL%20DSP/effects/PingPongDelay.md), [AdvancedDelay](FluexGL%20DSP/effects/AdvancedDelay.md): AudioWorklet/WASM, shared delay engine
 - [Reverb](FluexGL%20DSP/effects/Reverb.md), [LowPassFilter](FluexGL%20DSP/effects/LowPassFilter.md), [HighPassFilter](FluexGL%20DSP/effects/HighPassFilter.md), [Chorus](FluexGL%20DSP/effects/Chorus.md), [SoftClip](FluexGL%20DSP/effects/SoftClip.md), [HardClip](FluexGL%20DSP/effects/HardClip.md): AudioWorklet
 
 ## Optional

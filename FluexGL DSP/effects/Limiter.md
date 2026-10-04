@@ -7,7 +7,7 @@ Extends [``Effector``](../classes/Effector.md). ``Limiter`` does not use an Audi
 Every [``SpatialAudioRenderer2D``](../classes/SpatialAudioRenderer2D.md) and [``SpatialAudioRenderer3D``](../classes/SpatialAudioRenderer3D.md) attaches a ``Limiter`` to its master channel by default (see ``renderer.limiter``).
 
 ```
-input -> input gain -> DynamicsCompressorNode -> makeup compensation -> output
+input -> input gain -> DynamicsCompressorNode -> makeup compensation -> soft clipper -> output
 ```
 
 ## Example
@@ -73,6 +73,9 @@ The native compressor node that does the limiting. ``null`` until the effect is 
 
 ### ``outputGainNode: GainNode | null``
 Compensates the automatic makeup gain of the compressor node (see Notes). ``null`` until the effect is attached.
+
+### ``clipperNode: WaveShaperNode | null``
+A soft clipper after the compressor (see Notes). This is the output node. ``null`` until the effect is attached.
 
 - - -
 
@@ -154,7 +157,7 @@ Current gain reduction in dB (``0`` or negative). Useful for metering. ``0`` whi
 Returns ``inputGainNode``. See [``Effector``](../classes/Effector.md#getters-and-setters).
 
 ### ``get outputNode(): AudioNode | null``
-Returns ``outputGainNode``. See [``Effector``](../classes/Effector.md#getters-and-setters).
+Returns ``clipperNode``. See [``Effector``](../classes/Effector.md#getters-and-setters).
 
 - - -
 
@@ -169,8 +172,12 @@ Returns ``outputGainNode``. See [``Effector``](../classes/Effector.md#getters-an
 ### Makeup compensation
 The Web Audio specification adds an automatic makeup gain inside every ``DynamicsCompressorNode``: ``(1 / fullRangeGain) ^ 0.6``, where ``fullRangeGain`` is the curve's gain for a 0 dBFS input. For a ceiling of -1 dB this is about +0.57 dB, which would push the output above the ceiling. ``Limiter`` undoes this with ``outputGainNode``.
 
-### Not a true-peak brickwall limiter
-``Limiter`` is a safety limiter. The native node has a small fixed lookahead, so very fast transients can overshoot the ceiling by a fraction of a dB. A true-peak brickwall limiter with a configurable lookahead would require a WebAssembly implementation.
+### The soft clipper guarantees the sample peak
+The compressor does the actual limiting, but its ratio is 20:1 rather than infinite and its attack is not instant, so loud peaks would still pass slightly above the ceiling (about +0.6 dB for a +6 dBFS input at a -1 dB ceiling). A ``WaveShaperNode`` at the end catches those: it is exactly linear below 90% of the ceiling and bends the rest smoothly (tanh) towards the ceiling. The sample peak therefore never exceeds the ceiling. The clipper only adds distortion while it is actually catching an overshoot.
+
+It does not measure inter-sample (true) peaks. A true-peak limiter with a configurable lookahead would require a WebAssembly implementation.
+
+The makeup compensation follows the ``DynamicsCompressorKernel`` of Chromium (also used by Firefox).
 
 ### Effect order on a master channel
 [``Master``](../classes/Master.md) processes effects in the order they were attached, and does not offer a way to reorder them. Effects attached after the limiter come after it and can raise the level again.

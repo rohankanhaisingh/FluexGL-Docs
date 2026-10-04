@@ -56,7 +56,7 @@ The sources rendered by this voice.
 Receives the audio of all members.
 
 ### ``filter: BiquadFilterNode``
-Lowpass filter (air absorption). ``filter.frequency.value`` is the current cutoff.
+Lowpass filter (air absorption) with a Butterworth response (``Q: -3.0103`` dB, no resonance peak). ``filter.frequency.value`` is the current cutoff.
 
 ### ``panner: StereoPannerNode | PannerNode``
 The panner, depending on the panning model.
@@ -69,6 +69,9 @@ Reverb send, connected to the renderer's reverb bus. ``reverbSend.gain.value`` i
 
 ### ``centroidDirection: Vector3``
 Cluster centre as seen from the listener (unit vector in listener space). Only meaningful for cluster voices.
+
+### ``availableAt: number``
+Audio context time from which a pooled voice may be reused, so the tails of its previous sources have faded out.
 
 ### ``centroidDistance: number``
 Average distance of the cluster members to the listener. Only meaningful for cluster voices.
@@ -87,6 +90,9 @@ Fades a source out of this voice and disconnects it afterwards.
 
 ### ``has(source: SpatialAudioSource): boolean``
 Whether the source is a member of this voice.
+
+### ``recycle(isCluster: boolean): void``
+Prepares an empty voice from the pool for reuse. The nodes stay connected; the next ``setParameters()`` jumps straight to the new values.
 
 ### ``setParameters(parameters: SpatialVoiceParameters, smoothing: number): void``
 Applies cutoff, pan, direction and reverb send. A new voice jumps to its first values; later changes are smoothed with ``smoothing`` as time constant.

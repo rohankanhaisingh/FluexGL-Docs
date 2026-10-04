@@ -174,7 +174,7 @@ Attaches an [``AudioClip``](./AudioClip.md) to this channel via its internal [``
 - ``Channel`` - The same channel. Can be used to stack methods.
 
 ### ``volume(volume?: number): number``
-Gets or sets this channel's gain. When ``volume`` is provided (and truthy), it is written to ``gainNode.gain`` at the current context time. Throws if the channel has no ``context`` or ``gainNode``.
+Gets or sets this channel's gain. When ``volume`` is provided (including ``0``), it is written to ``gainNode.gain`` at the current context time. Throws if the channel has no ``context`` or ``gainNode``.
 
 #### Arguments
 - ``volume?``: ``number`` - New gain value to apply. Omit to just read the current value.
@@ -183,7 +183,7 @@ Gets or sets this channel's gain. When ``volume`` is provided (and truthy), it i
 - ``number`` - The value that was set, or the current ``gainNode.gain.value`` when no argument is given.
 
 ### ``pan(pan?: number): number``
-Gets or sets this channel's stereo pan. When ``pan`` is provided (and truthy), it is written to ``stereoPannerNode.pan`` at the current context time. Throws if the channel has no ``context`` or ``stereoPannerNode``.
+Gets or sets this channel's stereo pan. When ``pan`` is provided (including ``0``), it is written to ``stereoPannerNode.pan`` at the current context time. Throws if the channel has no ``context`` or ``stereoPannerNode``.
 
 #### Arguments
 - ``pan?``: ``number`` - New pan value to apply (between -1 and 1). Omit to just read the current value.
