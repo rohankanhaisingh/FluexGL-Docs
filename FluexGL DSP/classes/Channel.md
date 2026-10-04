@@ -120,7 +120,7 @@ No arguments
 - ``void``
 
 ### ``rebuildEffectChain(): void``
-Publicly re-runs the internal effect chain rebuild (reconnects ``input`` through the active effects into ``stereoPannerNode``). Useful if the automatic rebuild did not run as expected.
+Publicly re-runs the internal effect chain rebuild (reconnects ``input`` through the active effects into ``stereoPannerNode``). Effects are connected through their [``inputNode`` and ``outputNode``](./Effector.md#getters-and-setters), so both AudioWorklet effects and native effects (such as [``Compressor``](../effects/Compressor.md)) can be mixed in one chain. Useful if the automatic rebuild did not run as expected.
 
 #### Arguments
 No arguments

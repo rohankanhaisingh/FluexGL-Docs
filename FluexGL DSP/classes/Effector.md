@@ -1,6 +1,8 @@
 # Class ``Effector``
 
-Abstract base class for every DSP effect (e.g. [``Chorus``](../effects/Chorus.md), [``LowPassFilter``](../effects/LowPassFilter.md), [``HardClip``](../effects/HardClip.md)). Provides the common ``id``/``label``/``name`` bookkeeping, the ``audioWorkletNode`` slot, and the event system used to receive messages coming back from the AudioWorklet processor.
+Abstract base class for every DSP effect (e.g. [``Chorus``](../effects/Chorus.md), [``LowPassFilter``](../effects/LowPassFilter.md), [``HardClip``](../effects/HardClip.md)). Provides the common ``id``/``label``/``name`` bookkeeping, the ``audioWorkletNode`` slot, the ``inputNode``/``outputNode`` getters used to wire effects into a chain, and the event system used to receive messages coming back from the AudioWorklet processor.
+
+Most effects run on an AudioWorklet (``audioWorkletNode``). Effects built from native Web Audio nodes, such as [``Compressor``](../effects/Compressor.md) and [``Limiter``](../effects/Limiter.md), override ``inputNode`` and ``outputNode`` instead.
 
 ``Effector`` cannot be instantiated directly — it is meant to be extended, with subclasses implementing ``initializeOnAttachment()``.
 
@@ -47,7 +49,7 @@ The ``AudioContext`` this effect was initialized with. ``null`` until attached.
 ## Methods
 
 ### ``initializeOnAttachment(context: AudioContext): Promise<void>``
-Abstract method every subclass must implement. Called automatically when the effect is attached to a [``Channel``](./Channel.md) or [``Master``](./Master.md) (via ``addEffect``/``attachEffect``); responsible for constructing the effect's ``audioWorkletNode``.
+Abstract method every subclass must implement. Called automatically when the effect is attached to a [``Channel``](./Channel.md) or [``Master``](./Master.md) (via ``addEffect``/``attachEffect``); responsible for constructing the effect's audio nodes (its ``audioWorkletNode``, or the native nodes returned by ``inputNode``/``outputNode``). The nodes must be created synchronously, before the first ``await``, because the chain is rebuilt right after this method is called.
 
 #### Arguments
 - ``context``: ``AudioContext`` - The audio context to initialize the effect with.
@@ -118,7 +120,13 @@ Declared on [``EffectorEventMap``](../interfaces/EffectorEventMap.md) but not cu
 
 ## Getters and setters
 
-This class does not define public getters or setters.
+### ``get inputNode(): AudioNode | null``
+The node that receives the signal of this effect. [``Channel``](./Channel.md) and [``Master``](./Master.md) connect the previous node in the chain to it. Returns ``audioWorkletNode`` by default. ``null`` until the effect is attached.
+
+### ``get outputNode(): AudioNode | null``
+The node that outputs the processed signal of this effect. [``Channel``](./Channel.md) and [``Master``](./Master.md) connect it to the next node in the chain, and disconnect it when the chain is rebuilt or the effect is removed. Returns ``audioWorkletNode`` by default. ``null`` until the effect is attached.
+
+Effects that consist of multiple native nodes override both getters. Only ``outputNode`` is disconnected during a rebuild, so connections inside the effect stay intact.
 
 - - -
 
@@ -138,4 +146,37 @@ channel.addEffect(chorus);
 
 // Later
 unsubscribe();
+```
+
+### Example: a custom effect built from native nodes
+```ts
+import { Effector } from "@fluex/fluexgl-dsp";
+
+class Telephone extends Effector {
+
+    public name: string = "Telephone";
+    public label: string | null = "Telephone";
+
+    private highpass: BiquadFilterNode | null = null;
+    private lowpass: BiquadFilterNode | null = null;
+
+    public async initializeOnAttachment(context: AudioContext): Promise<void> {
+        this.context = context;
+
+        // Create the nodes synchronously: the chain is rebuilt right after this call.
+        this.highpass = new BiquadFilterNode(context, { type: "highpass", frequency: 300 });
+        this.lowpass = new BiquadFilterNode(context, { type: "lowpass", frequency: 3400 });
+        this.highpass.connect(this.lowpass);
+    }
+
+    public get inputNode(): AudioNode | null {
+        return this.highpass;
+    }
+
+    public get outputNode(): AudioNode | null {
+        return this.lowpass;
+    }
+}
+
+channel.addEffect(new Telephone());
 ```

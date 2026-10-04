@@ -9,12 +9,25 @@ let hasInitializedWasm: boolean;
 - - -
 
 ## About
-``hasInitializedWasm`` is a top-level, mutable ``boolean`` binding exported from the package. It is initialized to ``false``.
+``hasInitializedWasm`` is a top-level, mutable ``boolean`` binding exported from the package. It is initialized to ``false`` and set to ``true`` as soon as the WebAssembly module has been compiled successfully, which happens during [``DspPipeline.initializeDpsPipeline()``](../classes/DspPipeline.md).
 
-<!-- TODO: verify -- in the current source (utilities/web-assembly.ts) this flag is declared but never actually reassigned anywhere (the module instead tracks readiness via the separate `compiledWebAssemblyModule` variable used internally by createAudioWorkletNode). It is documented here as declared, but it will read `false` even after a successful DSP pipeline initialization; treat it as not yet wired up rather than a reliable "is WASM ready" check. -->
+Because it is an ES module live binding, an imported ``hasInitializedWasm`` always reflects the current value.
+
+Effects that run on an AudioWorklet (such as [``Reverb``](../effects/Reverb.md) or [``LowPassFilter``](../effects/LowPassFilter.md)) can only be attached once this flag is ``true``. Native effects such as [``Compressor``](../effects/Compressor.md) and [``Limiter``](../effects/Limiter.md) do not depend on it.
+
+The spatial renderers use this flag to attach their default reverb automatically once WebAssembly is ready.
+
+## Example
+
+```ts
+import { hasInitializedWasm, Reverb } from "@fluex/fluexgl-dsp";
+
+if (hasInitializedWasm)
+    channel.addEffect(new Reverb({ mix: 0.3 }));
+```
 
 ## Value
-- `boolean` – Always `false` as currently implemented.
+- `boolean` - ``true`` once the WebAssembly module has been compiled, otherwise ``false``.
 
 ## Error and warnings
 

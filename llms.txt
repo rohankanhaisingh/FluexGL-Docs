@@ -1,0 +1,48 @@
+# FluexGL Docs
+
+> Documentation for FluexGL (WebGPU graphics, in development) and FluexGL DSP (@fluex/fluexgl-dsp), a channel-based web audio engine with Rust/WebAssembly AudioWorklet effects, native compressor/limiter effects, and a 2D/3D spatial audio system with distance attenuation, air absorption, reverb sends and source clustering.
+
+Start with the AI guide: it contains the mental model, the API quick reference, the conventions and the common pitfalls on one page.
+
+## Start here
+- [AI guide](FluexGL%20DSP/AI-GUIDE.md): mental model, API quick reference, conventions, pitfalls
+- [Getting started](Getting%20started/How%20to%20use%20FluexGL-DSP.md): installation and pipeline initialization
+- [Spatial audio](Getting%20started/Spatial%20audio.md): concepts of the 2D/3D spatial audio system
+
+## Examples
+- [Examples index](FluexGL%20DSP/examples/README.md)
+- [01 Basic playback](FluexGL%20DSP/examples/01-basic-playback.md)
+- [02 Effect chains](FluexGL%20DSP/examples/02-effect-chains.md)
+- [03 Spatial 2D top-down](FluexGL%20DSP/examples/03-spatial-2d-top-down.md)
+- [04 Spatial 2D side-scroller](FluexGL%20DSP/examples/04-spatial-2d-side-scroller.md)
+- [05 Spatial 3D with three.js](FluexGL%20DSP/examples/05-spatial-3d-threejs.md)
+- [06 One-shot sounds](FluexGL%20DSP/examples/06-one-shot-sounds.md)
+- [07 Debugging clusters](FluexGL%20DSP/examples/07-debugging-clusters.md)
+- [08 Mixing and loudness](FluexGL%20DSP/examples/08-mixing-and-loudness.md)
+
+## Core classes
+- [DspPipeline](FluexGL%20DSP/classes/DspPipeline.md)
+- [AudioDevice](FluexGL%20DSP/classes/AudioDevice.md)
+- [Master](FluexGL%20DSP/classes/Master.md)
+- [Channel](FluexGL%20DSP/classes/Channel.md)
+- [AudioClip](FluexGL%20DSP/classes/AudioClip.md)
+- [AudioClipPlayer](FluexGL%20DSP/classes/AudioClipPlayer.md)
+- [Effector](FluexGL%20DSP/classes/Effector.md)
+
+## Spatial audio classes
+- [SpatialAudioRenderer](FluexGL%20DSP/classes/SpatialAudioRenderer.md): shared base
+- [SpatialAudioRenderer2D](FluexGL%20DSP/classes/SpatialAudioRenderer2D.md)
+- [SpatialAudioRenderer3D](FluexGL%20DSP/classes/SpatialAudioRenderer3D.md)
+- [SpatialAudioListener](FluexGL%20DSP/classes/SpatialAudioListener.md)
+- [SpatialAudioListener3D](FluexGL%20DSP/classes/SpatialAudioListener3D.md)
+- [SpatialAudioSource](FluexGL%20DSP/classes/SpatialAudioSource.md)
+- [SpatialAudioVoice](FluexGL%20DSP/classes/SpatialAudioVoice.md): internal
+
+## Effects
+- [Compressor](FluexGL%20DSP/effects/Compressor.md), [Limiter](FluexGL%20DSP/effects/Limiter.md): native, no WASM needed
+- [Reverb](FluexGL%20DSP/effects/Reverb.md), [LowPassFilter](FluexGL%20DSP/effects/LowPassFilter.md), [HighPassFilter](FluexGL%20DSP/effects/HighPassFilter.md), [Chorus](FluexGL%20DSP/effects/Chorus.md), [SoftClip](FluexGL%20DSP/effects/SoftClip.md), [HardClip](FluexGL%20DSP/effects/HardClip.md): AudioWorklet
+
+## Optional
+- [Interfaces and types](FluexGL%20DSP/interfaces/): option objects such as SpatialAudioRendererOptions, SpatialClusteringOptions, CompressorOptions, LimiterOptions
+- [Helpers](FluexGL%20DSP/helpers/): loadAudioSource, hasInitializedWasm and others
+- [Tips](Tips/): strict mode, multiple audio buffer sources

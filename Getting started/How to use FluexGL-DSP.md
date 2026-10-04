@@ -142,3 +142,10 @@ import { AudioClip } from "@fluex/fluexgl-dsp";
 const myAudioClip = new AudioClip(sourceData);
 myAudioClip.setMaxAudioBufferSourceNodes(200);
 ```
+
+---
+
+## Next steps
+- [Spatial audio](./Spatial%20audio.md): place sounds in a 2D or 3D world.
+- [Examples](../FluexGL%20DSP/examples/README.md): complete, copy-pasteable examples.
+- [AI guide](../FluexGL%20DSP/AI-GUIDE.md): the mental model, API quick reference and common pitfalls on one page.
