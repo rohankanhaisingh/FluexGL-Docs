@@ -1,4 +1,8 @@
-# FluexGL 0.5.1
+# FluexGL 0.1.1
+# FluexGL DSP 0.5.1
+
+## FluexGL DSP WebAssembly support
+This version of FluexGL DSP supports FluexGL DSP WebAssembly versions up until version 0.4.9.
 
 ## Overview
 FluexGL is a client-side toolkit for building advanced, WebGPU-powered graphics and for manipulating high-performance, Rust-written, engine-driven audio without noticeable latency.
