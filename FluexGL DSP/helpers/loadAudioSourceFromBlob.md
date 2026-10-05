@@ -13,7 +13,9 @@ The `loadAudioSourceFromBlob()` function decodes audio data from a provided `Blo
 
 This function is designed for situations where audio data is already available in memory rather than referenced by a file path or URL. Common use cases include file uploads, drag-and-drop interactions, or audio data retrieved via browser APIs such as `fetch()`.
 
-Internally, a temporary `AudioContext` is created to perform the decoding step.
+Internally, a temporary `AudioContext` is created to perform the decoding step. It is closed right after decoding, so loading many files does not leave audio contexts open.
+
+A `File` (for example from an `<input type="file">`) is a `Blob`, so it can be passed directly.
 
 Note: This function is asynchronous and must be called within an asynchronous scope.
 

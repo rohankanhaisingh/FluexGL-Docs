@@ -78,7 +78,7 @@ Removes an attached [``Effector``](./Effector.md) from this master channel, disc
 - ``void``
 
 ### ``attachChannel(channel: Channel): void``
-Registers a [``Channel``](./Channel.md) as connected into this master channel's ``input``. Logs an error if the channel is already attached. This is normally called for you via ``channel.send(master)``.
+Registers a [``Channel``](./Channel.md) as connected into this master channel's ``input``, and adds this master to the channel's ``masters``. Logs an error if the channel is already attached. This is normally called for you via ``channel.send(master)``.
 
 #### Arguments
 - ``channel``: [``Channel``](./Channel.md) - The channel to attach.
@@ -86,14 +86,37 @@ Registers a [``Channel``](./Channel.md) as connected into this master channel's 
 #### Returns
 - ``void``
 
-### ``detachChannel(channel: Channel): void``
-Disconnects a previously attached [``Channel``](./Channel.md) from this master channel's ``input``. Logs an error if the channel is not attached. This is normally called for you via ``channel.unsend(master)``.
+### ``detachChannel(channel: Channel): boolean``
+Disconnects a previously attached [``Channel``](./Channel.md) from this master channel's ``input``, and removes this master from the channel's ``masters``. This is normally called for you via ``channel.unsend(master)``.
+
+Detaching a channel that is not attached only logs a warning and does **not** throw, so it is safe to call at any time.
 
 #### Arguments
 - ``channel``: [``Channel``](./Channel.md) - The channel to detach.
 
 #### Returns
+- ``boolean`` - ``true`` when the channel has been detached, ``false`` when it was not attached.
+
+#### Warnings
+- ``WARNING:FLUEXGL-DSP@0005`` (``WarningCodes.CHANNEL_NOT_ATTACHED``) - The channel is not attached to this master channel.
+
+### ``detachAllChannels(): void``
+Detaches every attached channel from this master channel.
+
+#### Arguments
+No arguments
+
+#### Returns
 - ``void``
+
+### ``hasChannel(channel: Channel): boolean``
+Returns whether the given [``Channel``](./Channel.md) is attached to this master channel.
+
+#### Arguments
+- ``channel``: [``Channel``](./Channel.md)
+
+#### Returns
+- ``boolean``
 
 ### ``hasAudioClipPlayer(): boolean``
 Returns whether this master channel has a constructed [``AudioClipPlayer``](./AudioClipPlayer.md).

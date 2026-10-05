@@ -1,6 +1,6 @@
 # FluexGL Docs
 
-> Documentation for FluexGL (WebGPU graphics, in development) and FluexGL DSP (@fluex/fluexgl-dsp), a channel-based web audio engine with Rust/WebAssembly AudioWorklet effects, native compressor/limiter effects, and a 2D/3D spatial audio system with distance attenuation, air absorption, reverb sends and source clustering.
+> Documentation for FluexGL (WebGPU graphics, in development) and FluexGL DSP (@fluex/fluexgl-dsp), a channel-based web audio engine with Rust/WebAssembly AudioWorklet effects, native compressor/limiter effects, and a 2D/3D spatial audio system with distance attenuation, air absorption, reverb sends and source clustering, input devices (microphones, WebRTC streams) and runtime switching of input and output devices.
 
 Start with the AI guide: it contains the mental model, the API quick reference, the conventions and the common pitfalls on one page.
 
@@ -19,12 +19,16 @@ Start with the AI guide: it contains the mental model, the API quick reference, 
 - [06 One-shot sounds](FluexGL%20DSP/examples/06-one-shot-sounds.md)
 - [07 Debugging clusters](FluexGL%20DSP/examples/07-debugging-clusters.md)
 - [08 Mixing and loudness](FluexGL%20DSP/examples/08-mixing-and-loudness.md)
+- [09 Input and output devices](FluexGL%20DSP/examples/09-input-and-output-devices.md)
+- [10 Splitting and merging](FluexGL%20DSP/examples/10-splitting-and-merging.md)
+- [11 Proximity voice chat](FluexGL%20DSP/examples/11-proximity-voice-chat.md)
 
 ## Core classes
 - [DspPipeline](FluexGL%20DSP/classes/DspPipeline.md)
 - [AudioDevice](FluexGL%20DSP/classes/AudioDevice.md)
 - [Master](FluexGL%20DSP/classes/Master.md)
 - [Channel](FluexGL%20DSP/classes/Channel.md)
+- [InputChannel](FluexGL%20DSP/classes/InputChannel.md): microphones, line-ins and remote (WebRTC) streams
 - [AudioClip](FluexGL%20DSP/classes/AudioClip.md)
 - [AudioClipPlayer](FluexGL%20DSP/classes/AudioClipPlayer.md)
 - [Effector](FluexGL%20DSP/classes/Effector.md)
@@ -39,12 +43,12 @@ Start with the AI guide: it contains the mental model, the API quick reference, 
 - [SpatialAudioVoice](FluexGL%20DSP/classes/SpatialAudioVoice.md): internal
 
 ## Effects
-- [Compressor](FluexGL%20DSP/effects/Compressor.md), [Limiter](FluexGL%20DSP/effects/Limiter.md), [MultibandCompressor](FluexGL%20DSP/effects/MultibandCompressor.md), [StereoPanner](FluexGL%20DSP/effects/StereoPanner.md): native, no WASM needed
+- [Compressor](FluexGL%20DSP/effects/Compressor.md), [Limiter](FluexGL%20DSP/effects/Limiter.md), [MultibandCompressor](FluexGL%20DSP/effects/MultibandCompressor.md), [StereoPanner](FluexGL%20DSP/effects/StereoPanner.md), [StereoMono](FluexGL%20DSP/effects/StereoMono.md): native, no WASM needed
 - [Equalizer](FluexGL%20DSP/effects/Equalizer.md), [Saturation](FluexGL%20DSP/effects/Saturation.md): AudioWorklet/WASM
 - [MonoDelay](FluexGL%20DSP/effects/MonoDelay.md), [StereoDelay](FluexGL%20DSP/effects/StereoDelay.md), [PingPongDelay](FluexGL%20DSP/effects/PingPongDelay.md), [AdvancedDelay](FluexGL%20DSP/effects/AdvancedDelay.md): AudioWorklet/WASM, shared delay engine
 - [Reverb](FluexGL%20DSP/effects/Reverb.md), [LowPassFilter](FluexGL%20DSP/effects/LowPassFilter.md), [HighPassFilter](FluexGL%20DSP/effects/HighPassFilter.md), [Chorus](FluexGL%20DSP/effects/Chorus.md), [SoftClip](FluexGL%20DSP/effects/SoftClip.md), [HardClip](FluexGL%20DSP/effects/HardClip.md): AudioWorklet
 
 ## Optional
 - [Interfaces and types](FluexGL%20DSP/interfaces/): option objects such as SpatialAudioRendererOptions, SpatialClusteringOptions, CompressorOptions, LimiterOptions
-- [Helpers](FluexGL%20DSP/helpers/): loadAudioSource, hasInitializedWasm and others
+- [Helpers](FluexGL%20DSP/helpers/): loadAudioSource, listAudioInputDevices, listAudioOutputDevices, watchAudioDevices, hasInitializedWasm and others
 - [Tips](Tips/): strict mode, multiple audio buffer sources

@@ -15,6 +15,7 @@ DspPipeline        compiles the WASM module and prepares the worklet (once per p
   -> AudioDevice   owns an AudioContext, a default Master, and creates Channels/Masters
        -> Master   final bus: input -> [effects] -> gain -> analyser -> speakers
        -> Channel  input -> [effects] -> stereo panner -> analyser -> gain -> output -> Master or another Channel
+       -> InputChannel  a Channel fed by a microphone or a MediaStream (WebRTC) instead of AudioClips
        -> AudioClip  a playable sound (decoded buffer), sent into Channels/Masters
        -> Effector   an effect in a Channel/Master chain (worklet or native nodes)
 ```
@@ -24,7 +25,7 @@ Spatial audio sits on top of this:
 ```
 SpatialAudioRenderer2D / SpatialAudioRenderer3D   own Master + reverb Channel + Limiter + one listener
   -> SpatialAudioListener / SpatialAudioListener3D the "ears" (player or camera)
-  -> SpatialAudioSource                             a positioned sound; AudioClips are attached to it
+  -> SpatialAudioSource                             a positioned sound; AudioClips and Channels are attached to it
   -> SpatialAudioVoice (internal)                   lowpass -> panner -> master + reverb send; shared by clusters
 ```
 
@@ -66,7 +67,13 @@ clip.play();
 | ``audioDevice.getMasterChannel(): Master`` | Default master. |
 | ``audioDevice.createChannel(label?): Channel`` | |
 | ``audioDevice.createMasterChannel(): Master`` | An extra master, also connected to the speakers. |
-| ``channel.send(target: Channel \| Master)`` / ``unsend(target)`` | Prevents feedback loops. |
+| ``audioDevice.setOutputDevice(deviceOrId \| null): Promise<boolean>`` | Switches the output device at runtime; the graph stays intact. Needs ``AudioDevice.supportsOutputDeviceSelection`` (Chromium). |
+| ``audioDevice.createInputChannel(deviceOrId?, label?, options?): Promise<InputChannel>`` | Opens a microphone on a new channel. Not connected to anything by default. |
+| ``audioDevice.addEventListener("output-device-changed" \| "output-device-lost" \| "devices-changed", cb)`` | Unplugged output devices fall back to the default device. |
+| ``inputChannel.setInputDevice(deviceOrId \| null)`` / ``setMediaStream(stream)`` / ``setMuted(bool)`` / ``close()`` | Switch microphone, use a remote stream, mute, release. |
+| ``listAudioInputDevices()`` / ``listAudioOutputDevices()`` / ``findDefaultAudioDevice(kind)`` / ``watchAudioDevices(cb)`` | Plain ``MediaDeviceInfo`` lists. The old ``resolveAudio*Devices`` helpers are deprecated. |
+| ``channel.send(target: Channel \| Master)`` / ``unsend(target)`` | Prevents feedback loops. ``unsend`` returns ``false`` (no error) when there was no link. Sending to several targets splits, several channels sending to one target merges. |
+| ``channel.isSentTo(target)`` / ``unsendFromAllMasters()`` / ``unsendFromAll()`` | ``channel.masters`` lists the masters a channel is attached to. |
 | ``channel.addEffect(effect): Channel`` / ``removeEffect(effect)`` / ``moveEffectToIndex(effect, index \| "start" \| "end")`` | |
 | ``master.attachEffect(effect)`` / ``detachEffect(effect)`` | Processed in attach order; no reordering. |
 | ``channel.volume(v?)`` / ``channel.pan(v?)`` | Getter and setter in one. ``0`` is a valid value. |
@@ -91,6 +98,7 @@ All effects extend ``Effector`` and are added with ``channel.addEffect()`` or ``
 | ``MultibandCompressor`` (3 bands, Linkwitz-Riley crossovers) | Native | No |
 | ``Limiter`` (``ceiling``, ``release``, ``inputGain``) | Native compressor + soft clipper | No |
 | ``StereoPanner`` (``pan``, ``width``) | Native | No |
+| ``StereoMono`` (``mode``: ``stereo``, ``mono``, ``swap``, ``left``, ``right``, ``left-to-both``, ``right-to-both``, ``mid``, ``side``; delay and polarity per side). ``StereoMono.split(channel, "left-right" \| "mid-side")`` | Native | No |
 | ``Analyser`` | Native ``AnalyserNode`` | No |
 | ``Distortion`` | Placeholder, not functional yet | - |
 
@@ -114,6 +122,7 @@ Custom effects: extend ``Effector``, create nodes synchronously in ``initializeO
 | ``renderer.getClusters()`` | Debug info per voice. |
 | ``(renderer as SpatialAudioRenderer3D).setPanningModel("HRTF" \| "equalpower" \| "stereo")`` | 3D only. |
 | ``source.attachAudioClip(clip)`` | Then ``clip.play()``. Do NOT also ``clip.send()`` it to a channel. |
+| ``source.attachChannel(channel)`` / ``detachChannel(channel)`` | Positions a channel, e.g. an ``InputChannel`` with a voice (proximity chat). Do NOT also ``send()`` the channel to a master. |
 | ``source.setPosition(x, y, z?)`` / ``setVolume(v)`` / ``setAttenuation({...})`` | ``z`` is ignored in 2D. |
 | ``source.state`` / ``source.audible`` / ``source.voice`` | Read-only results of the last ``update()``. |
 | 2D listener: ``setPosition(x, y)``, ``setRotation(rad)``, ``lookAt(x, y)`` | Rotation optional, clockwise, ``0`` = facing up on screen. |
@@ -148,6 +157,11 @@ Custom effects: extend ``Effector``, create nodes synchronously in ``initializeO
 11. **Native compressors add makeup gain**: every ``DynamicsCompressorNode`` (and so ``Compressor``) applies an automatic makeup gain from its curve, several dB at typical settings. ``Limiter`` and ``MultibandCompressor`` undo it; ``Compressor`` keeps the native behavior.
 12. **Some spatial sources are silent when many sounds play**: by design. Above ``options.maxVoices`` the quietest sources become virtual (``source.isVirtual``). Raise ``maxVoices`` if your target devices can handle it; check ``renderer.getStats()``.
 13. **Do not call ``setTargetAtTime`` every frame on many params**: every automation call is a message to the audio thread. The spatial renderer only sends changes above an inaudible threshold; do the same in your own code.
+14. **An ``InputChannel`` is silent**: it is not connected to anything by default; ``send()`` it to a master, or ``attachChannel()`` it to a spatial source.
+15. **Microphone feedback or echo**: monitoring a microphone through speakers feeds back. ``InputChannel`` disables echo cancellation by default (raw signal for effects); enable it in the options for speech, and always for the microphone you send to other players.
+16. **The "side" of a microphone is silent**: a microphone is mono (``L = R``), so ``StereoMono`` ``"side"`` and mid/side splits have nothing to work with until one side is delayed.
+17. **A split sounds doubled**: ``StereoMono.split()`` keeps the existing sends of the source channel. ``unsend(master)`` the source if only the branches should be heard.
+18. **Remote WebRTC voices are silent in Web Audio**: use ``inputChannel.setMediaStream()``; it adds the muted media element Chromium needs. Do not create a ``MediaStreamAudioSourceNode`` yourself without it.
 
 ---
 
@@ -157,6 +171,9 @@ Custom effects: extend ``Effector``, create nodes synchronously in ``initializeO
 |---|---|
 | Install and initialize | [Getting started](../Getting%20started/How%20to%20use%20FluexGL-DSP.md) |
 | Spatial audio concepts | [Spatial audio](../Getting%20started/Spatial%20audio.md) |
+| Microphones and device switching | [Example 09](./examples/09-input-and-output-devices.md), [InputChannel](./classes/InputChannel.md) |
+| Splitting, merging, surround | [Example 10](./examples/10-splitting-and-merging.md), [StereoMono](./effects/StereoMono.md) |
+| Voice chat in a game world | [Example 11](./examples/11-proximity-voice-chat.md) |
 | Complete examples | [Examples](./examples/README.md) |
 | Class reference | [classes/](./classes/README.md) |
 | Effect reference | ``effects/<Name>.md`` |

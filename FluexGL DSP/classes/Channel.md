@@ -2,6 +2,8 @@
 
 An audio routing unit that can host an effect chain, attach audio clips via an internal [``AudioClipPlayer``](./AudioClipPlayer.md), and send its output to another [``Channel``](./Channel.md) or the [``Master``](./Master.md).
 
+A channel can send to multiple targets (splitting the signal) and receive from multiple channels (merging the signal). To split a signal into its left/right or mid/side parts, see [``StereoMono.split()``](../effects/StereoMono.md). To receive audio from a microphone or a remote stream, use the subclass [``InputChannel``](./InputChannel.md).
+
 ## Example
 
 ```ts
@@ -57,6 +59,9 @@ The AudioContext this channel was constructed with.
 
 ### ``sends: Channel[]``
 Channels this channel is currently connected to via ``send()``.
+
+### ``masters: Master[]``
+[``Master``](./Master.md) channels this channel is attached to. Maintained by [``master.attachChannel()``](./Master.md) and [``master.detachChannel()``](./Master.md), so ``send(master)`` and ``unsend(master)`` keep it up to date. Should not be changed directly.
 
 ### ``audioClipPlayer: AudioClipPlayer | null``
 [``AudioClipPlayer``](./AudioClipPlayer.md) owned by this channel. Used to attach and play [``AudioClip``](./AudioClip.md) instances into this channel.
@@ -137,17 +142,46 @@ Connects this channel's ``output`` to another [``Channel``](./Channel.md) (to it
 #### Returns
 - ``void``
 
-### ``unsend(channel: Channel | Master): void``
-Disconnects this channel from a previously linked [``Channel``](./Channel.md) or [``Master``](./Master.md) and removes it from ``sends``.
+### ``unsend(channel: Channel | Master): boolean``
+Disconnects this channel from a previously linked [``Channel``](./Channel.md) or [``Master``](./Master.md) and removes it from ``sends`` (or ``masters``).
+
+Unsending from a target this channel is not sent to does nothing and does not log an error, so it is safe to call at any time, even when ``debugger.breakOnError`` is enabled.
 
 #### Arguments
 - ``channel``: [``Channel``](./Channel.md) | [``Master``](./Master.md) - The target that should stop receiving this channel's signal.
 
 #### Returns
-- ``void``
+- ``boolean`` - ``true`` when the link has been removed, ``false`` when there was no link.
+
+### ``isSentTo(channel: Channel | Master): boolean``
+Returns whether the signal of this channel is currently sent to the given [``Channel``](./Channel.md) or [``Master``](./Master.md). Useful for toggles.
+
+#### Arguments
+- ``channel``: [``Channel``](./Channel.md) | [``Master``](./Master.md)
+
+#### Returns
+- ``boolean``
 
 ### ``unsendToAllChannels(): void``
-Disconnects this channel from all channels currently stored in ``sends``.
+Disconnects this channel from all channels currently stored in ``sends``. Master channels are not affected; use ``unsendFromAllMasters()`` or ``unsendFromAll()`` for those.
+
+#### Arguments
+No arguments
+
+#### Returns
+- ``void``
+
+### ``unsendFromAllMasters(): void``
+Detaches this channel from every [``Master``](./Master.md) channel it is attached to.
+
+#### Arguments
+No arguments
+
+#### Returns
+- ``void``
+
+### ``unsendFromAll(): void``
+Removes every outgoing link of this channel, both to channels and to master channels.
 
 #### Arguments
 No arguments
@@ -307,7 +341,7 @@ import { DspPipeline } from "@fluex/fluexgl-dsp";
 })()
 ```
 
-### Example 3: routing channels together
+### Example 3: routing channels together (series)
 ```ts
 import { DspPipeline } from "@fluex/fluexgl-dsp";
 
@@ -337,4 +371,44 @@ import { DspPipeline } from "@fluex/fluexgl-dsp";
     channel2.send(channel3);
     channel3.send(master);
 })()
+```
+
+### Example 4: toggling a send without errors
+```ts
+const master = audioDevice.getMasterChannel();
+const channel = audioDevice.createChannel();
+
+channel.send(master);
+
+button.addEventListener("click", () => {
+    if (channel.isSentTo(master)) {
+        channel.unsend(master);
+    } else {
+        channel.send(master);
+    }
+});
+
+// Safe: unsending something that is not linked just returns false.
+channel.unsend(master);
+channel.unsend(master);
+```
+
+### Example 5: splitting and merging
+```ts
+const source = audioDevice.createChannel("Source");
+const dry = audioDevice.createChannel("Dry");
+const wet = audioDevice.createChannel("Wet");
+const bus = audioDevice.createChannel("Bus");
+
+// Split: one channel sends to two channels.
+source.send(dry);
+source.send(wet);
+
+wet.addEffect(new Reverb());
+
+// Merge: two channels send to the same channel.
+dry.send(bus);
+wet.send(bus);
+
+bus.send(audioDevice.getMasterChannel());
 ```

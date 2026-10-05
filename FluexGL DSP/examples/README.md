@@ -14,5 +14,8 @@ New to the library, or an AI model working with it? Read the [AI guide](../AI-GU
 | 06 | [One-shot sounds](./06-one-shot-sounds.md) | Gunshots, footsteps, temporary sources |
 | 07 | [Debugging clusters](./07-debugging-clusters.md) | ``source.state``, ``getClusters()``, tuning clustering |
 | 08 | [Mixing and loudness](./08-mixing-and-loudness.md) | Music + world + UI, limiter, compressor, multiple renderers |
+| 09 | [Input and output devices](./09-input-and-output-devices.md) | Microphone on an ``InputChannel``, switching input and output devices at runtime |
+| 10 | [Splitting and merging](./10-splitting-and-merging.md) | ``StereoMono``, left/right and mid/side splits, pseudo surround |
+| 11 | [Proximity voice chat](./11-proximity-voice-chat.md) | WebRTC voices on ``InputChannel``s, positioned with ``attachChannel()`` |
 
 All examples assume the WebAssembly and worklet files are served under ``/bin/``. See [Getting started](../../Getting%20started/How%20to%20use%20FluexGL-DSP.md) for how to get them.

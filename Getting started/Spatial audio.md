@@ -12,7 +12,7 @@ This page explains the concepts. For complete code, see the [examples](../FluexG
 |---|---|
 | [``SpatialAudioRenderer2D``](../FluexGL%20DSP/classes/SpatialAudioRenderer2D.md) / [``SpatialAudioRenderer3D``](../FluexGL%20DSP/classes/SpatialAudioRenderer3D.md) | Owns everything: its own master channel, a reverb bus, a limiter, one listener and all sources. Call ``update()`` every frame. |
 | [``SpatialAudioListener``](../FluexGL%20DSP/classes/SpatialAudioListener.md) / [``SpatialAudioListener3D``](../FluexGL%20DSP/classes/SpatialAudioListener3D.md) | The "ears" of the scene, usually the player or the camera. Every renderer has exactly one. |
-| [``SpatialAudioSource``](../FluexGL%20DSP/classes/SpatialAudioSource.md) | A sound in the world. Attach one or more ``AudioClip``s to it and move it with your game object. |
+| [``SpatialAudioSource``](../FluexGL%20DSP/classes/SpatialAudioSource.md) | A sound in the world. Attach one or more ``AudioClip``s (or ``Channel``s, such as a voice on an [``InputChannel``](../FluexGL%20DSP/classes/InputChannel.md)) to it and move it with your game object. For voice chat, see [Example 11](../FluexGL%20DSP/examples/11-proximity-voice-chat.md). |
 
 ```ts
 const renderer = new SpatialAudioRenderer2D(audioDevice);

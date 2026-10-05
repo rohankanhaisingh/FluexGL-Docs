@@ -65,7 +65,9 @@ No arguments
 No arguments
 
 #### Returns
-- ``Promise<AudioDevice | null>`` - The default [``AudioDevice``](./AudioDevice.md) instance, or ``null`` when no default output device is found or initialization is missing.
+- ``Promise<AudioDevice | null>`` - The default [``AudioDevice``](./AudioDevice.md) instance, or ``null`` when no output device is found or initialization is missing.
+
+The default device is the ``"default"`` entry of ``enumerateDevices()``, or the first output device in browsers without one (such as Firefox). See [``findDefaultAudioDevice()``](../helpers/findDefaultAudioDevice.md). The output device can be switched later with [``audioDevice.setOutputDevice()``](./AudioDevice.md).
 
 ### ``tellMeWhatTheFuckThisWholeLibraryActuallyDoes(): string``
 

@@ -2,7 +2,7 @@
 
 A positioned sound emitter in a 2D or 3D scene. The 2D renderer ignores the ``z`` coordinate.
 
-[``AudioClip``](./AudioClip.md) instances attached to a source are routed through the source's own gain stage (volume and distance attenuation), and from there into a [``SpatialAudioVoice``](./SpatialAudioVoice.md) of the renderer. Depending on the distance to the listener, the source either has its own voice or shares one with other sources (a cluster).
+[``AudioClip``](./AudioClip.md) instances and [``Channel``](./Channel.md)s (for example an [``InputChannel``](./InputChannel.md) carrying a microphone or the voice of another player) attached to a source are routed through the source's own gain stage (volume and distance attenuation), and from there into a [``SpatialAudioVoice``](./SpatialAudioVoice.md) of the renderer. Depending on the distance to the listener, the source either has its own voice or shares one with other sources (a cluster).
 
 ## Example
 
@@ -76,7 +76,7 @@ The [``SpatialAudioRenderer``](./SpatialAudioRenderer.md) this source belongs to
 The [``AudioClipPlayer``](./AudioClipPlayer.md) that plays the attached clips into ``input``. ``null`` until added to a renderer.
 
 ### ``input: GainNode | null``
-Receives the audio of all attached clips.
+Receives the audio of all attached clips and channels.
 
 ### ``output: GainNode | null``
 Applies ``volume x attenuation``. Connected to a voice by the renderer.
@@ -155,6 +155,30 @@ Removes an [``AudioClip``](./AudioClip.md) from this source.
 #### Returns
 - ``SpatialAudioSource`` - The same source.
 
+### ``attachChannel(channel: Channel): SpatialAudioSource``
+Routes the output of a [``Channel``](./Channel.md) through this source, so it is positioned in the scene. Works with any channel, such as an [``InputChannel``](./InputChannel.md) carrying a microphone or the voice of another player (see [``InputChannel.setMediaStream()``](./InputChannel.md#methods)). Effects on the channel are applied before the spatialization. Can be called before the source is added to a renderer; the channel is then connected once the source is initialized. Attaching the same channel twice does nothing.
+
+The channel should not be sent to a master channel as well, otherwise it is also heard unpositioned. Call ``channel.unsendFromAllMasters()`` first.
+
+#### Arguments
+- ``channel``: [``Channel``](./Channel.md) - Must use the same ``AudioContext`` as the renderer.
+
+#### Returns
+- ``SpatialAudioSource`` - The same source.
+
+#### Errors and warnings
+- ``WARNING:FLUEXGL-DSP@0006`` (``WarningCodes.CHANNEL_ALSO_SENT_TO_MASTER``) - The channel is also sent to a master channel.
+- ``ERROR:FLUEXGL-DSP@0015`` (``ErrorCodes.CHANNEL_NOT_SAME_AUDIO_CONTEXT``) - The channel and the renderer use a different ``AudioContext``.
+
+### ``detachChannel(channel: Channel): SpatialAudioSource``
+Stops routing the channel through this source. Detaching a channel that is not attached does nothing.
+
+#### Arguments
+- ``channel``: [``Channel``](./Channel.md)
+
+#### Returns
+- ``SpatialAudioSource`` - The same source.
+
 ### ``stopAll(): SpatialAudioSource``
 Stops all attached clips.
 
@@ -175,7 +199,7 @@ Creates the audio nodes of this source. Called by the renderer when the source i
 - ``void``
 
 ### ``dispose(): void``
-Stops all clips and releases the audio nodes. Use ``renderer.removeSource(source)`` instead of calling this directly, so the source is first faded out of its voice.
+Stops all clips, detaches all channels and releases the audio nodes. The detached channels themselves stay intact. Use ``renderer.removeSource(source)`` instead of calling this directly, so the source is first faded out of its voice.
 
 #### Arguments
 No arguments
@@ -196,8 +220,41 @@ Whether the source has been added to a renderer and has its audio nodes.
 ### ``get audioClips(): AudioClip[]``
 The attached clips (including clips waiting for the source to be initialized).
 
+### ``get channels(): Channel[]``
+A copy of the list of attached channels (including channels waiting for the source to be initialized).
+
 - - -
 
 ## Events
 
 This class does not emit any events.
+
+- - -
+
+## Examples
+
+### Example 1: a positioned microphone
+```ts
+const microphone = await audioDevice.createInputChannel(null, "Microphone");
+
+const source = renderer.createSource({ position: { x: 300, y: 200 } });
+source.attachChannel(microphone);
+
+renderer.start();
+```
+
+### Example 2: a voice with a radio effect
+```ts
+import { HighPassFilter, LowPassFilter } from "@fluex/fluexgl-dsp";
+
+const voice = new InputChannel(audioDevice.getContext(), "Player 2");
+voice.setMediaStream(remoteStream);
+
+// Effects run before the spatialization.
+voice.addEffect(new HighPassFilter({ cutoff: 400 }));
+voice.addEffect(new LowPassFilter({ cutoff: 3000 }));
+
+renderer.createSource({ position: player2.position, clusterable: false }).attachChannel(voice);
+```
+
+See [Example 11: Proximity voice chat](../examples/11-proximity-voice-chat.md) for a complete setup.
