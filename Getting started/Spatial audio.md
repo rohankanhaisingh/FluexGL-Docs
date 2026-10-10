@@ -10,9 +10,9 @@ This page explains the concepts. For complete code, see the [examples](../FluexG
 
 | Class | What it is |
 |---|---|
-| [``SpatialAudioRenderer2D``](../FluexGL%20DSP/classes/SpatialAudioRenderer2D.md) / [``SpatialAudioRenderer3D``](../FluexGL%20DSP/classes/SpatialAudioRenderer3D.md) | Owns everything: its own master channel, a reverb bus, a limiter, one listener and all sources. Call ``update()`` every frame. |
+| [``SpatialAudioRenderer2D``](../FluexGL%20DSP/classes/SpatialAudioRenderer2D.md) / [``SpatialAudioRenderer3D``](../FluexGL%20DSP/classes/SpatialAudioRenderer3D.md) | Owns everything: its own master channel (or a bus you pass as ``output``), a reverb bus, a limiter, one listener and all sources. Call ``update()`` every frame. |
 | [``SpatialAudioListener``](../FluexGL%20DSP/classes/SpatialAudioListener.md) / [``SpatialAudioListener3D``](../FluexGL%20DSP/classes/SpatialAudioListener3D.md) | The "ears" of the scene, usually the player or the camera. Every renderer has exactly one. |
-| [``SpatialAudioSource``](../FluexGL%20DSP/classes/SpatialAudioSource.md) | A sound in the world. Attach one or more ``AudioClip``s (or ``Channel``s, such as a voice on an [``InputChannel``](../FluexGL%20DSP/classes/InputChannel.md)) to it and move it with your game object. For voice chat, see [Example 11](../FluexGL%20DSP/examples/11-proximity-voice-chat.md). |
+| [``SpatialAudioSource``](../FluexGL%20DSP/classes/SpatialAudioSource.md) | A sound emitter in the world, owned by a game object. Play [``Sound``](../FluexGL%20DSP/classes/Sound.md)s on it with ``source.play()``, attach ``AudioClip``s or ``Channel``s (such as a voice on an [``InputChannel``](../FluexGL%20DSP/classes/InputChannel.md)), and move it with your game object. For voice chat, see [Example 11](../FluexGL%20DSP/examples/11-proximity-voice-chat.md). |
 
 ```ts
 const renderer = new SpatialAudioRenderer2D(audioDevice);
@@ -75,6 +75,35 @@ Set ``clusterable: false`` on a source that should always keep its own voice, su
 
 ---
 
+## Sounds in a game world
+
+There are three ways to play a [``Sound``](../FluexGL%20DSP/classes/Sound.md), depending on who it belongs to:
+
+```ts
+npcSource.play(sounds.growl);                       // an object with its own source: moves with it
+renderer.playAt(sounds.explosion, { x: 900, y: 120 }); // nobody: fire-and-forget at a position
+sounds.click.play(uiBus);                           // not positioned: UI, the player itself
+```
+
+``playAt()`` borrows a source from a pool and returns it when the sound has ended. One-shots that are too far away to be heard are not played at all.
+
+Looping sounds (a torch, a waterfall) whose source has no voice for half a second are suspended: their audio nodes are released, and they continue in time once you come closer. See [Loop virtualization](../FluexGL%20DSP/classes/SpatialAudioRenderer.md#loop-virtualization).
+
+## Buses
+
+A renderer sends everything to its own master channel, unless you give it an ``output``. Sources can be routed to another bus with ``bus``:
+
+```ts
+const world = new SpatialAudioRenderer3D(audioDevice, { output: entitiesBus });
+
+world.createSource({ position, bus: ambienceBus });
+world.playAt(sounds.explosion, position, { bus: effectsBus });
+```
+
+Sources only share a voice with sources on the same bus. See [Example 12: Game audio architecture](../FluexGL%20DSP/examples/12-game-audio-architecture.md).
+
+---
+
 ## 2D or 3D?
 
 | | 2D | 3D |
@@ -101,7 +130,7 @@ HRTF gives the brain front/back and elevation cues. It works best on headphones 
 
 ## Loudness: the limiter
 
-Every spatial renderer has a [``Limiter``](../FluexGL%20DSP/effects/Limiter.md) on its master channel (ceiling -1 dB), so many sources at once do not clip. Configure or disable it with the ``limiter`` option:
+Every spatial renderer has a [``Limiter``](../FluexGL%20DSP/effects/Limiter.md) on its master channel (ceiling -1 dB), so many sources at once do not clip. Configure or disable it with the ``limiter`` option. A renderer with an ``output`` has no limiter unless you pass ``limiter: true`` (or options); put one on your master channel instead.
 
 ```ts
 new SpatialAudioRenderer3D(audioDevice, { limiter: { ceiling: -3 } });
@@ -134,6 +163,9 @@ console.log(renderer.getClusters());
 
 // What is a voice doing right now?
 console.log(source.voice?.filter.frequency.value, source.voice?.isCluster);
+
+// Voices, virtual sources and suspended loops at a glance.
+console.log(renderer.getStats());
 ```
 
 See [Debugging and visualizing clusters](../FluexGL%20DSP/examples/07-debugging-clusters.md).

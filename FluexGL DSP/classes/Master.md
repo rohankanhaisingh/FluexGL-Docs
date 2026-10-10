@@ -60,7 +60,7 @@ The AudioContext this master channel was constructed with.
 ### ``attachEffect(effect: Effector): void``
 Adds an [``Effector``](./Effector.md) to this master channel, initializes it using this channel's ``AudioContext``, and rebuilds the internal effect chain routing. Effects are processed in the order they were attached, and connected through their [``inputNode`` and ``outputNode``](./Effector.md#getters-and-setters). Logs an error if the effect is already attached.
 
-Spatial renderers ([``SpatialAudioRenderer2D``](./SpatialAudioRenderer2D.md), [``SpatialAudioRenderer3D``](./SpatialAudioRenderer3D.md)) attach a [``Limiter``](../effects/Limiter.md) to their own master channel by default. Effects attached afterwards come after that limiter.
+Spatial renderers ([``SpatialAudioRenderer2D``](./SpatialAudioRenderer2D.md), [``SpatialAudioRenderer3D``](./SpatialAudioRenderer3D.md)) attach a [``Limiter``](../effects/Limiter.md) to their own master channel by default (not when they are given an ``output``). Effects attached afterwards come after that limiter.
 
 #### Arguments
 - ``effect``: [``Effector``](./Effector.md) - The effect instance to attach.

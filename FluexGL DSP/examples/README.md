@@ -11,11 +11,12 @@ New to the library, or an AI model working with it? Read the [AI guide](../AI-GU
 | 03 | [Spatial 2D: top-down game](./03-spatial-2d-top-down.md) | 2D renderer, moving sources, rotating listener |
 | 04 | [Spatial 2D: side-scroller](./04-spatial-2d-side-scroller.md) | 2D renderer without rotation, ``yAxis``, ``rearLowpassFactor`` |
 | 05 | [Spatial 3D with three.js](./05-spatial-3d-threejs.md) | 3D renderer, HRTF, following a camera |
-| 06 | [One-shot sounds](./06-one-shot-sounds.md) | Gunshots, footsteps, temporary sources |
+| 06 | [One-shot sounds](./06-one-shot-sounds.md) | ``Sound``, ``source.play()``, fire-and-forget ``playAt()``, instance limits |
 | 07 | [Debugging clusters](./07-debugging-clusters.md) | ``source.state``, ``getClusters()``, tuning clustering |
 | 08 | [Mixing and loudness](./08-mixing-and-loudness.md) | Music + world + UI, limiter, compressor, multiple renderers |
 | 09 | [Input and output devices](./09-input-and-output-devices.md) | Microphone on an ``InputChannel``, switching input and output devices at runtime |
 | 10 | [Splitting and merging](./10-splitting-and-merging.md) | ``StereoMono``, left/right and mid/side splits, pseudo surround |
 | 11 | [Proximity voice chat](./11-proximity-voice-chat.md) | WebRTC voices on ``InputChannel``s, positioned with ``attachChannel()`` |
+| 12 | [Game audio architecture](./12-game-audio-architecture.md) | Buses per category, sources per object, ``playAt()`` for the rest, loop virtualization |
 
 All examples assume the WebAssembly and worklet files are served under ``/bin/``. See [Getting started](../../Getting%20started/How%20to%20use%20FluexGL-DSP.md) for how to get them.

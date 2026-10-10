@@ -3,11 +3,11 @@
 The DSP chain that actually spatializes audio. Managed by [``SpatialAudioRenderer``](./SpatialAudioRenderer.md) and not meant to be created directly. It is not exported from the package root, but you can read voices through ``renderer.voices`` and ``source.voice``, for example for metering or visualization.
 
 ```
-[source taps] -> input -> lowpass -> panner -> output (dry) -> master
+[source taps] -> input -> lowpass -> panner -> output (dry) -> destination (bus)
                                             \-> reverbSend  -> reverb bus
 ```
 
-A voice either belongs to one source (individual), or is shared by multiple far away sources in roughly the same direction (cluster). Every source keeps its own gain stage, so only the filter, panning and reverb send are shared.
+A voice either belongs to one source (individual), or is shared by multiple far away sources on the same bus in roughly the same direction (cluster). Every source keeps its own gain stage, so only the filter, panning and reverb send are shared.
 
 The panner is a ``StereoPannerNode`` for the ``"stereo"`` panning model, or a ``PannerNode`` (``"equalpower"`` / ``"HRTF"``) for the 3D panning models. The ``PannerNode`` only handles direction; it uses ``rolloffFactor: 0``, so distance attenuation is left to the renderer.
 
@@ -62,7 +62,10 @@ Lowpass filter (air absorption) with a Butterworth response (``Q: -3.0103`` dB, 
 The panner, depending on the panning model.
 
 ### ``output: GainNode``
-Dry output, connected to the renderer's master channel.
+Dry output, connected to ``destination``.
+
+### ``destination: AudioNode``
+The node the dry output is connected to: the ``input`` of the bus of its sources, or of the renderer's output.
 
 ### ``reverbSend: GainNode``
 Reverb send, connected to the renderer's reverb bus. ``reverbSend.gain.value`` is the current send level.
@@ -90,6 +93,9 @@ Fades a source out of this voice and disconnects it afterwards.
 
 ### ``has(source: SpatialAudioSource): boolean``
 Whether the source is a member of this voice.
+
+### ``setDestination(destination: AudioNode): void``
+Moves the dry output to another bus. Not crossfaded, so the renderer only calls it on empty voices taken from the pool.
 
 ### ``recycle(isCluster: boolean): void``
 Prepares an empty voice from the pool for reuse. The nodes stay connected; the next ``setParameters()`` jumps straight to the new values.

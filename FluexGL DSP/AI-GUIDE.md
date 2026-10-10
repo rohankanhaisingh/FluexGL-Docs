@@ -14,19 +14,23 @@ FluexGL DSP is a channel-based audio engine on top of the Web Audio API. Most ef
 DspPipeline        compiles the WASM module and prepares the worklet (once per page)
   -> AudioDevice   owns an AudioContext, a default Master, and creates Channels/Masters
        -> Master   final bus: input -> [effects] -> gain -> analyser -> speakers
-       -> Channel  input -> [effects] -> stereo panner -> analyser -> gain -> output -> Master or another Channel
+       -> Channel  input -> [effects] -> [stereo panner] -> [analyser] -> gain/output -> Master or another Channel
+                   (panner and analyser only exist once used; use channels as buses, not one per game object)
        -> InputChannel  a Channel fed by a microphone or a MediaStream (WebRTC) instead of AudioClips
-       -> AudioClip  a playable sound (decoded buffer), sent into Channels/Masters
+       -> AudioClip  a playable sound (decoded buffer), sent into Channels/Masters; for music and editing
+       -> Sound      a game sound effect: one shared buffer, lightweight SoundInstances, instance limits
        -> Effector   an effect in a Channel/Master chain (worklet or native nodes)
 ```
 
 Spatial audio sits on top of this:
 
 ```
-SpatialAudioRenderer2D / SpatialAudioRenderer3D   own Master + reverb Channel + Limiter + one listener
+SpatialAudioRenderer2D / SpatialAudioRenderer3D   own Master (or an `output` bus) + reverb Channel + Limiter + one listener
   -> SpatialAudioListener / SpatialAudioListener3D the "ears" (player or camera)
-  -> SpatialAudioSource                             a positioned sound; AudioClips and Channels are attached to it
-  -> SpatialAudioVoice (internal)                   lowpass -> panner -> master + reverb send; shared by clusters
+  -> SpatialAudioSource                             a positioned emitter (2 gain nodes), one per game object; plays Sounds,
+                                                    AudioClips and Channels; `bus` routes it to a bus Channel
+  -> renderer.playAt(sound, position)               fire-and-forget Sound on a pooled source (explosions, impacts)
+  -> SpatialAudioVoice (internal)                   lowpass -> panner -> bus + reverb send; shared by clusters on the same bus
 ```
 
 ---
@@ -76,7 +80,9 @@ clip.play();
 | ``channel.isSentTo(target)`` / ``unsendFromAllMasters()`` / ``unsendFromAll()`` | ``channel.masters`` lists the masters a channel is attached to. |
 | ``channel.addEffect(effect): Channel`` / ``removeEffect(effect)`` / ``moveEffectToIndex(effect, index \| "start" \| "end")`` | |
 | ``master.attachEffect(effect)`` / ``detachEffect(effect)`` | Processed in attach order; no reordering. |
-| ``channel.volume(v?)`` / ``channel.pan(v?)`` | Getter and setter in one. ``0`` is a valid value. |
+| ``channel.volume(v?)`` / ``channel.pan(v?)`` | Getter and setter in one. ``0`` is a valid value. The panner is created on the first non-zero ``pan()``. |
+| ``channel.enableAnalyser(options?): AnalyserNode`` / ``disableAnalyser()`` | Channels have no analyser by default; ``channel.analyserNode`` is ``null`` until enabled. |
+| ``channel.dispose()`` | Stops clips, removes outgoing links, releases nodes. |
 | ``loadAudioSource(path): Promise<AudioSourceData \| null>`` | Decodes the file. |
 | ``new AudioClip(data)`` | Many clips can share one ``AudioSourceData``. |
 | ``clip.send(channelOrMaster)`` / ``unsend(...)`` | A clip plays into every target it was sent to. |
@@ -84,6 +90,9 @@ clip.play();
 | ``clip.setLoop(bool)`` / ``setVolume(v)`` / ``setPanLevel(-1..1)`` / ``setPitch(semitones)`` | |
 | ``clip.setMaxAudioBufferSourceNodes(n)`` | Overlapping playback. Requires ``overrideMaxAudioBufferNodes: true``. |
 | ``clip.addEventListener("progress" \| "initialize" \| "play", cb)`` | |
+| ``Sound.load(audioDeviceOrContext, url, options?): Promise<Sound>`` | Game sound effects. Decodes on the given context, cached per url. Options: ``volume``, ``volumeVariation``, ``pitch``, ``pitchVariation``, ``maxInstances`` (8), ``steal`` (``"oldest"`` \| ``"quietest"`` \| ``"none"``), ``minInterval``, ``loop``. |
+| ``sound.play(channelOrMaster, { volume?, pitch?, loop?, offset?, when? })`` | Not positioned (UI, the player's own sounds). Returns a ``SoundInstance`` or ``null`` when skipped. |
+| ``instance.stop(fade?)`` / ``setVolume(v)`` / ``setPosition(x, y, z?)`` / ``onEnded(cb)`` / ``source`` | ``setPosition`` only for ``playAt()`` instances. An ended instance can not be controlled. |
 
 ### Effects
 All effects extend ``Effector`` and are added with ``channel.addEffect()`` or ``master.attachEffect()``.
@@ -113,12 +122,16 @@ Custom effects: extend ``Effector``, create nodes synchronously in ``initializeO
 | ``new SpatialAudioRenderer3D(audioDeviceOrContext, options?)`` | PannerNode, ``panningModel: "HRTF"`` by default. Meters. ``refDistance 1``, ``maxDistance 100``. |
 | ``renderer.update()`` | Call every frame after moving the listener and sources. Or ``renderer.start()`` / ``stop()``. |
 | ``renderer.createSource({ position, volume?, refDistance?, maxDistance?, clusterable?, reverbSendFactor?, airAbsorption? })`` | Returns a ``SpatialAudioSource``. |
-| ``renderer.removeSource(source, dispose = true)`` | Fades out, then stops clips and releases nodes. |
+| ``renderer.removeSource(source, dispose = true)`` | Fades out, then stops sounds and clips and releases nodes. |
+| ``renderer.playAt(sound, position, { bus?, loop?, volume?, cull?, refDistance?, ... })`` | Fire-and-forget on a pooled source. Inaudible one-shots are skipped (``null``) unless ``cull: false``. |
+| ``source.play(sound, options?)`` | Plays a ``Sound`` through an object's own source; moves with it. Source must be added to a renderer. |
+| ``new SpatialAudioRenderer3D(audioDevice, { output: bus })`` / ``source.bus`` / ``source.setBus(bus)`` | Route the renderer, or a single source, to a bus ``Channel``. Sources only cluster with sources on the same bus. |
 | ``renderer.listener`` | ``SpatialAudioListener`` (2D) or ``SpatialAudioListener3D`` (3D). |
-| ``renderer.master`` / ``renderer.limiter`` / ``renderer.reverbChannel`` | Own master, built-in limiter (``limiter: false`` disables), reverb bus. |
+| ``renderer.output`` / ``renderer.master`` / ``renderer.limiter`` / ``renderer.reverbChannel`` | Output (own master or the ``output`` option), ``master`` (``null`` when the output is a ``Channel``), built-in limiter (``limiter: false`` disables; off by default with an ``output``), reverb bus. |
 | ``renderer.setReverbEffect(effect \| null)`` | Default reverb is attached automatically once WASM is ready. |
 | ``renderer.clustering`` / ``renderer.options`` | Mutable at runtime. ``options.maxVoices`` caps the voices (64 in 2D, 32 in 3D). |
-| ``renderer.getStats()`` | ``{ sources, audible, virtual, voices, clusters, pooledVoices }``. |
+| ``renderer.getStats()`` | ``{ sources, audible, virtual, voices, clusters, pooledVoices, suspendedLoops }``. |
+| ``options.loopVirtualizationDelay`` | Seconds without a voice before looping ``Sound``s of a source are suspended (and later resumed in time). Default ``0.5``, ``Infinity`` disables. |
 | ``renderer.getClusters()`` | Debug info per voice. |
 | ``(renderer as SpatialAudioRenderer3D).setPanningModel("HRTF" \| "equalpower" \| "stereo")`` | 3D only. |
 | ``source.attachAudioClip(clip)`` | Then ``clip.play()``. Do NOT also ``clip.send()`` it to a channel. |
@@ -162,6 +175,11 @@ Custom effects: extend ``Effector``, create nodes synchronously in ``initializeO
 16. **The "side" of a microphone is silent**: a microphone is mono (``L = R``), so ``StereoMono`` ``"side"`` and mid/side splits have nothing to work with until one side is delayed.
 17. **A split sounds doubled**: ``StereoMono.split()`` keeps the existing sends of the source channel. ``unsend(master)`` the source if only the branches should be heard.
 18. **Remote WebRTC voices are silent in Web Audio**: use ``inputChannel.setMediaStream()``; it adds the muted media element Chromium needs. Do not create a ``MediaStreamAudioSourceNode`` yourself without it.
+19. **Hundreds of channels in a game**: do not create a ``Channel`` per game object. Use a few bus channels, one ``SpatialAudioSource`` per object (``bus`` option), ``renderer.playAt()`` for sounds without an owner, and ``Sound`` instead of ``AudioClip`` for sound effects. See [Example 12](./examples/12-game-audio-architecture.md).
+20. **``channel.analyserNode`` or ``channel.stereoPannerNode`` is ``null``**: they are created on demand. Call ``channel.enableAnalyser()`` / ``channel.pan(x)`` first.
+21. **``renderer.master`` is ``null``**: the renderer was given a ``Channel`` as ``output``. Use ``renderer.output`` or the bus itself.
+22. **``playAt()`` returns ``null``**: the one-shot was too far away to hear (pass ``cull: false``), or the sound's ``minInterval``/``maxInstances`` skipped it. Always use ``instance?.``.
+23. **A loop played through an ``AudioClip`` on a far away source keeps running**: only ``Sound`` loops are virtualized. Use ``source.play(sound, { loop: true })`` or ``playAt(..., { loop: true })`` for ambience.
 
 ---
 
@@ -174,6 +192,8 @@ Custom effects: extend ``Effector``, create nodes synchronously in ``initializeO
 | Microphones and device switching | [Example 09](./examples/09-input-and-output-devices.md), [InputChannel](./classes/InputChannel.md) |
 | Splitting, merging, surround | [Example 10](./examples/10-splitting-and-merging.md), [StereoMono](./effects/StereoMono.md) |
 | Voice chat in a game world | [Example 11](./examples/11-proximity-voice-chat.md) |
+| Sound effects | [Example 06](./examples/06-one-shot-sounds.md), [Sound](./classes/Sound.md) |
+| Organizing a whole game (buses, sources, ambience) | [Example 12](./examples/12-game-audio-architecture.md) |
 | Complete examples | [Examples](./examples/README.md) |
 | Class reference | [classes/](./classes/README.md) |
 | Effect reference | ``effects/<Name>.md`` |

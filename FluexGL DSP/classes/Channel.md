@@ -2,6 +2,10 @@
 
 An audio routing unit that can host an effect chain, attach audio clips via an internal [``AudioClipPlayer``](./AudioClipPlayer.md), and send its output to another [``Channel``](./Channel.md) or the [``Master``](./Master.md).
 
+A channel is kept as light as possible, because a game can have many of them: a new channel only has two audio nodes (``input`` and ``gainNode``). The stereo panner, the analyser and the clip player are only created when they are used.
+
+In a game, use channels as **buses** (for example "Effects", "Entities", "UI", "Ambience" and "Voice chat"), not one per game object. Give a game object a [``SpatialAudioSource``](./SpatialAudioSource.md) instead, and route it to a bus with its ``bus`` option. See [Example 12: Game audio architecture](../examples/12-game-audio-architecture.md).
+
 A channel can send to multiple targets (splitting the signal) and receive from multiple channels (merging the signal). To split a signal into its left/right or mid/side parts, see [``StereoMono.split()``](../effects/StereoMono.md). To receive audio from a microphone or a remote stream, use the subclass [``InputChannel``](./InputChannel.md).
 
 ## Example
@@ -16,7 +20,13 @@ channel.send(master);
 - - -
 
 ## Constructor
-Constructs a new Channel and initializes its internal audio nodes (input → effects → panner → analyser → gain → output) and its [``AudioClipPlayer``](./AudioClipPlayer.md).
+Constructs a new Channel with two audio nodes: ``input`` and ``gainNode`` (which is also ``output``). The full chain is
+
+```
+input -> [effects] -> [stereo panner] -> [analyser] -> gain (output)
+```
+
+where the parts in brackets are only present when used: effects once added, the stereo panner once the channel is panned away from the centre (``pan()``), and the analyser once enabled (``enableAnalyser()``). The [``AudioClipPlayer``](./AudioClipPlayer.md) is created the first time ``audioClipPlayer`` is used.
 
 ```ts
 new Channel(context: AudioContext, label?: string): Channel;
@@ -40,19 +50,19 @@ A custom label for this channel. Can be changed.
 Input node for this channel. Internally created as a GainNode and used as the start of the routing chain.
 
 ### ``stereoPannerNode: StereoPannerNode | null``
-Stereo panner node for left/right balance control inside this channel.
+Stereo panner node for left/right balance control inside this channel. ``null`` until the channel is panned away from the centre with ``pan()``.
 
 ### ``analyserNode: AnalyserNode | null``
-Analyser node used for visualization / analysis of this channel's signal.
+Analyser node used for visualization / analysis of this channel's signal. ``null`` until ``enableAnalyser()`` is called. Channels have no analyser by default, because it costs processing time on every channel.
 
 ### ``gainNode: GainNode | null``
-Gain node used to control the channel's volume after analysis.
+Gain node used to control the channel's volume. The last node of the channel.
 
 ### ``output: AudioNode | null``
-Output node of this channel. This node is connected to other channels when calling ``send()``.
+Output node of this channel. This node is connected to other channels when calling ``send()``. The same node as ``gainNode``.
 
 ### ``effects: Effector[]``
-List of attached [``Effector``](./Effector.md) instances. These are wired between ``input`` and ``stereoPannerNode``.
+List of attached [``Effector``](./Effector.md) instances. These are wired between ``input`` and the stereo panner (or the analyser, or ``gainNode``, whichever comes first).
 
 ### ``context: AudioContext | null``
 The AudioContext this channel was constructed with.
@@ -62,9 +72,6 @@ Channels this channel is currently connected to via ``send()``.
 
 ### ``masters: Master[]``
 [``Master``](./Master.md) channels this channel is attached to. Maintained by [``master.attachChannel()``](./Master.md) and [``master.detachChannel()``](./Master.md), so ``send(master)`` and ``unsend(master)`` keep it up to date. Should not be changed directly.
-
-### ``audioClipPlayer: AudioClipPlayer | null``
-[``AudioClipPlayer``](./AudioClipPlayer.md) owned by this channel. Used to attach and play [``AudioClip``](./AudioClip.md) instances into this channel.
 
 - - -
 
@@ -100,6 +107,8 @@ Removes an attached [``Effector``](./Effector.md) from this channel, disconnects
 ### ``removeAllEffects(): void``
 Removes every effect currently attached to this channel by calling ``removeEffect()`` for each one.
 
+> Before version 0.5.2, every other effect was skipped. Effects are now all removed.
+
 #### Arguments
 No arguments
 
@@ -125,7 +134,7 @@ No arguments
 - ``void``
 
 ### ``rebuildEffectChain(): void``
-Publicly re-runs the internal effect chain rebuild (reconnects ``input`` through the active effects into ``stereoPannerNode``). Effects are connected through their [``inputNode`` and ``outputNode``](./Effector.md#getters-and-setters), so both AudioWorklet effects and native effects (such as [``Compressor``](../effects/Compressor.md)) can be mixed in one chain. Useful if the automatic rebuild did not run as expected.
+Publicly re-runs the internal effect chain rebuild (reconnects ``input`` through the active effects, the stereo panner and the analyser into ``gainNode``). Effects are connected through their [``inputNode`` and ``outputNode``](./Effector.md#getters-and-setters), so both AudioWorklet effects and native effects (such as [``Compressor``](../effects/Compressor.md)) can be mixed in one chain. Useful if the automatic rebuild did not run as expected.
 
 #### Arguments
 No arguments
@@ -190,16 +199,16 @@ No arguments
 - ``void``
 
 ### ``hasAudioClipPlayer(): boolean``
-Returns whether this channel has a constructed [``AudioClipPlayer``](./AudioClipPlayer.md).
+Returns whether audio clips can be attached to this channel. The [``AudioClipPlayer``](./AudioClipPlayer.md) itself is created on demand, so this is ``true`` for every channel that has not been disposed.
 
 #### Arguments
 No arguments
 
 #### Returns
-- ``boolean`` - ``true`` if ``audioClipPlayer`` is defined, otherwise ``false``.
+- ``boolean``
 
 ### ``attachAudioClip(audioClip: AudioClip): Channel``
-Attaches an [``AudioClip``](./AudioClip.md) to this channel via its internal [``AudioClipPlayer``](./AudioClipPlayer.md). Throws if this channel has no ``audioClipPlayer``.
+Attaches an [``AudioClip``](./AudioClip.md) to this channel via its internal [``AudioClipPlayer``](./AudioClipPlayer.md), creating the player if needed. Throws if the channel has been disposed.
 
 #### Arguments
 - ``audioClip``: [``AudioClip``](./AudioClip.md) - The audio clip to attach.
@@ -217,13 +226,40 @@ Gets or sets this channel's gain. When ``volume`` is provided (including ``0``),
 - ``number`` - The value that was set, or the current ``gainNode.gain.value`` when no argument is given.
 
 ### ``pan(pan?: number): number``
-Gets or sets this channel's stereo pan. When ``pan`` is provided (including ``0``), it is written to ``stereoPannerNode.pan`` at the current context time. Throws if the channel has no ``context`` or ``stereoPannerNode``.
+Gets or sets this channel's stereo pan. The ``StereoPannerNode`` is created the first time the channel is panned away from the centre; ``pan(0)`` on a channel without a panner does nothing. Once created, the panner stays. Throws if the channel has no ``context``.
 
 #### Arguments
 - ``pan?``: ``number`` - New pan value to apply (between -1 and 1). Omit to just read the current value.
 
 #### Returns
-- ``number`` - The value that was set, or the current ``stereoPannerNode.pan.value`` when no argument is given.
+- ``number`` - The value that was set, or the current pan when no argument is given (``0`` when the channel has no panner).
+
+### ``enableAnalyser(options?: AnalyserOptions): AnalyserNode``
+Inserts an ``AnalyserNode`` after the effects (and the stereo panner) of this channel, and returns it. Calling it again returns the same node; ``options`` only apply when the node is created. Throws if the channel has no ``context``.
+
+#### Arguments
+- ``options?``: ``AnalyserOptions`` - Native Web Audio analyser options, such as ``fftSize`` and ``smoothingTimeConstant``.
+
+#### Returns
+- ``AnalyserNode`` - The channel's analyser, also available as ``analyserNode``.
+
+### ``disableAnalyser(): void``
+Removes the analyser created by ``enableAnalyser()``. Does nothing when the channel has no analyser.
+
+#### Arguments
+No arguments
+
+#### Returns
+- ``void``
+
+### ``dispose(): void``
+Stops the clips of this channel, removes all of its outgoing links (to channels and master channels) and releases its audio nodes. Channels that send to this channel are not changed; call ``unsend(channel)`` on them yourself. Until then their signal simply ends here.
+
+#### Arguments
+No arguments
+
+#### Returns
+- ``void``
 
 ### ``getEffectsByLabel(label: string): Effector[]``
 Returns all attached effects whose ``label`` matches the given value.
@@ -279,7 +315,8 @@ This class does not emit custom events.
 
 ## Getters and setters
 
-This class does not define public getters or setters.
+### ``get audioClipPlayer(): AudioClipPlayer | null``
+The [``AudioClipPlayer``](./AudioClipPlayer.md) of this channel, used to attach and play [``AudioClip``](./AudioClip.md) instances into it. Created the first time it is read, so channels that never play clips themselves do not carry an extra node. ``null`` after ``dispose()``.
 
 - - -
 
@@ -411,4 +448,25 @@ dry.send(bus);
 wet.send(bus);
 
 bus.send(audioDevice.getMasterChannel());
+```
+
+### Example 6: a meter on a bus
+```ts
+const effects = audioDevice.createChannel("Effects");
+effects.send(audioDevice.getMasterChannel());
+
+const analyser = effects.enableAnalyser({ fftSize: 1024 });
+const samples = new Float32Array(analyser.fftSize);
+
+function meter() {
+    analyser.getFloatTimeDomainData(samples);
+    const peak = samples.reduce((max, v) => Math.max(max, Math.abs(v)), 0);
+    meterElement.style.width = `${peak * 100}%`;
+    requestAnimationFrame(meter);
+}
+
+meter();
+
+// No longer needed:
+effects.disableAnalyser();
 ```

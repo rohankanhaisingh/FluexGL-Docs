@@ -10,6 +10,7 @@ interface SpatialRendererStats {
     voices: number;
     clusters: number;
     pooledVoices: number;
+    suspendedLoops: number;
 }
 ```
 
@@ -23,6 +24,7 @@ Useful for debugging and for tuning ``maxVoices`` of a [``SpatialAudioRenderer``
 - `voices`: `number` - Voices in use (individual and clusters).
 - `clusters`: `number` - Voices shared by multiple sources.
 - `pooledVoices`: `number` - Empty voices kept for reuse.
+- `suspendedLoops`: `number` - Looping [``SoundInstance``](../classes/SoundInstance.md)s whose audio node is released because their source has no voice. See [Loop virtualization](../classes/SpatialAudioRenderer.md#loop-virtualization).
 
 ## Example
 ```ts

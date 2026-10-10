@@ -16,6 +16,8 @@ interface SpatialAudioRendererOptions extends SpatialAttenuationOptions {
     maxVoices: number;
     clustering: Partial<SpatialClusteringOptions>;
     limiter: boolean | Partial<LimiterOptions>;
+    output: Channel | Master | null;
+    loopVirtualizationDelay: number;
 }
 ```
 
@@ -39,4 +41,6 @@ The renderer maps the normalized distance (``0`` at ``refDistance``, ``1`` at ``
 - `silenceThreshold`: `number` - Gain below which a source is inaudible and gets no voice. It becomes audible again at twice this value. Default ``0.001``.
 - `maxVoices`: `number` - Maximum number of voices (a cluster counts as one). Above it, the quietest sources become virtual. Default ``64`` (2D) or ``32`` (3D). See [Voice budget](../classes/SpatialAudioRenderer.md#voice-budget).
 - `clustering`: [`Partial<SpatialClusteringOptions>`](./SpatialClusteringOptions.md) - Clustering configuration.
-- `limiter`: `boolean` | [`Partial<LimiterOptions>`](./LimiterOptions.md) - Safety [``Limiter``](../effects/Limiter.md) on the renderer's master channel. ``false`` disables it, an object configures it. Default ``true``.
+- `limiter`: `boolean` | [`Partial<LimiterOptions>`](./LimiterOptions.md) - Safety [``Limiter``](../effects/Limiter.md) on the renderer's output. ``false`` disables it, an object configures it. Default ``true``, or ``false`` when an ``output`` is given (the output is then owned by your game).
+- `output`: [`Channel`](../classes/Channel.md) | [`Master`](../classes/Master.md) | `null` - Where the renderer sends its sound and its reverb, for example an "Entities" bus. ``null`` creates a master channel for the renderer. See [Buses](../classes/SpatialAudioRenderer.md#buses). Default ``null``.
+- `loopVirtualizationDelay`: `number` - Seconds a source must be without a voice before its looping sounds are suspended (their audio nodes released), and resumed in time once it has a voice again. ``Infinity`` disables it. See [Loop virtualization](../classes/SpatialAudioRenderer.md#loop-virtualization). Default ``0.5``.

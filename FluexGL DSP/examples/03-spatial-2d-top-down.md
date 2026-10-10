@@ -3,7 +3,7 @@
 A top-down game where the player is the listener and turns towards the mouse. Enemies carry a looping sound, and a campfire plays at a fixed position.
 
 ## What it shows
-- [``SpatialAudioRenderer2D``](../classes/SpatialAudioRenderer2D.md) with its own master channel.
+- [``SpatialAudioRenderer2D``](../classes/SpatialAudioRenderer2D.md) with its own master channel. To send it to bus channels instead, see [Example 12](./12-game-audio-architecture.md).
 - Sources that follow game objects.
 - A rotating [``SpatialAudioListener``](../classes/SpatialAudioListener.md) (``lookAt``).
 - Calling ``renderer.update()`` from your own game loop.

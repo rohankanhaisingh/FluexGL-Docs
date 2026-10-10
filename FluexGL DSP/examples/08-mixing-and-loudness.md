@@ -17,7 +17,7 @@ UI clips   -> Channel "UI" ------------------+--> device master [Limiter] --> sp
 World sources -> SpatialAudioRenderer -> renderer.master [Limiter] ------------+
 ```
 
-Every spatial renderer has its own master channel, created with ``audioDevice.createMasterChannel()``. It connects to the speakers next to the device's default master channel.
+By default every spatial renderer has its own master channel, created with ``audioDevice.createMasterChannel()``. It connects to the speakers next to the device's default master channel. A renderer can also send to a bus channel instead, with the ``output`` option; see [Example 12](./12-game-audio-architecture.md) for a mix with a bus per category.
 
 ## Code
 

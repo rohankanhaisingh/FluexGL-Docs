@@ -1,4 +1,4 @@
-# FluexGL 0.1.1 (DSP 0.5.1)
+# FluexGL 0.1.1 (DSP 0.5.2)
 
 ## FluexGL DSP WebAssembly support
 This version of FluexGL DSP supports FluexGL DSP WebAssembly versions up until version 0.4.9.

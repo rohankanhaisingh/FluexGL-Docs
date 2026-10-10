@@ -119,4 +119,4 @@ Returns ``pannerNode``.
 
 ## Notes
 
-Every [``Channel``](../classes/Channel.md) already has a ``StereoPannerNode`` (``channel.pan()``). Use this effect when you also need width control, or panning at a specific position in an effect chain.
+Every [``Channel``](../classes/Channel.md) can already pan with ``channel.pan()``, which creates a ``StereoPannerNode`` after the effects on first use. Use this effect when you also need width control, or panning at a specific position in an effect chain.
